@@ -2,6 +2,7 @@
 #include "Robot.h"
 #include "XboxJoystickMap.h"
 #include "RateEncoder.h"
+#include <Timer.h>
 
 #define DEADZONE 0.1
 #define LEFT_TOLERANCE 0.1
@@ -13,27 +14,33 @@ class Robot: public IterativeRobot
 	Joystick leftStick; // only joystick
 	Joystick rightStick;
 	Joystick xbox;
-	Victor frontLeft;
+	Victor frontLeft;	//motor controller
 	Victor frontRight;
 	Victor backLeft;
 	Victor backRight;
-	RobotDrive driveTrain;
-	Spark intakeRoller;
-	DoubleSolenoid intake;
+	RobotDrive driveTrain;	//handles driving methods
+	Spark intakeRoller;	//motor controller
+	DoubleSolenoid intake;	//pneumatic controller
 	Spark climberUp;
 	DoubleSolenoid shifter;
 	Spark leftShooter;
 	Spark leftFeeder;
 	Spark rightShooter;
 	Spark rightFeeder;
-	RateEncoder leftEncoder;
+	RateEncoder leftEncoder;	//sensor
 	RateEncoder rightEncoder;
-	PIDController leftPID;
+	PIDController leftPID;	//error adjustor
 	PIDController rightPID;
+	ADXRS450_Gyro gyro;
+	Timer timer;
+
+	int mode;
+	int state;
+	double initialAngle;
 
 public:
 	Robot():
-		leftStick(0),
+		leftStick(0),	//get used to it
 		rightStick(1),
 		xbox(2),
 		frontLeft(frontLeftPWM),
@@ -44,7 +51,7 @@ public:
 		intakeRoller(intakeRollerPWM),
 		intake(intakeForwardPWM, intakeReversePWM),
 		climberUp(climberUpPWM),
-		shifter(shifterForwardPWM, shifterReversePWM),
+		shifter(shifterForwardPWM, shifterReversePWM),	//change gears
 		leftShooter(leftShooterPWM),
 		leftFeeder(leftFeederPWM),
 		rightShooter(rightShooterPWM),
@@ -52,7 +59,8 @@ public:
 		leftEncoder(leftEncoderA, leftEncoderB),
 		rightEncoder(rightEncoderA, rightEncoderB),
 		leftPID(0, 0, 0, &leftEncoder, &leftShooter),
-		rightPID(0, 0, 0, &rightEncoder, &rightShooter)
+		rightPID(0, 0, 0, &rightEncoder, &rightShooter),
+		timer()
 	{
 		SmartDashboard::init();
 		//b = DriverStationLCD::GetInstance();
@@ -63,24 +71,219 @@ private:
 	{
 	}
 
+	void backUpMod(double seconds) {
+		driveTrain.TankDrive(-1, -1, false);
+		if (timer.Get() > seconds) {
+			driveTrain.TankDrive(0, 0.0, false);
+			timer.Reset();
+			state++;
+		}
+	}
+
+	void autoRightGearHighGoal() {
+		if (state == rGHG_LowGear) {
+			shifter.Set(DoubleSolenoid::kForward);
+			timer.Reset();
+			state++;
+		}
+
+		else if (state == rGHG_BackUp0) {
+			backUpMod(2);
+		}
+
+		else if (state == rGHG_RotateLeft) {
+			if (initialAngle == -1) {
+				initialAngle = gyro.GetAngle();
+			}
+			if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
+				driveTrain.TankDrive(-0.5, 0.5);
+			}
+			else {
+				driveTrain.TankDrive(0.0, 0);
+				timer.Reset();
+				state++;
+			}
+		}
+
+		else if (state == rGHG_BackUp1) {
+			backUpMod(2);
+		}
+
+		else if (state == rGHG_PlaceGear) {
+			//TODO: implement later
+			//note: back up & wait & forward
+			if (timer.Get() > 4) {
+				timer.Reset();
+				state++;
+			}
+		}
+
+		else if (state == rGHG_DriveForward) {
+			driveTrain.TankDrive(1, 1, false);
+			if (timer.Get() > 2) {
+				driveTrain.TankDrive(0.0, 0, false);
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == rGHG_ShootFuel) {
+			Shooting();
+			if (timer.Get() > 5) {
+				timer.Reset();
+				state++;
+			}
+		}
+	}
+
+	void autoRightGearHighGoalReload() {
+		if (state <= rGHGR_RGHG) {
+			autoRightGearHighGoal();
+			if (state == rGHG_ShootFuel + 1) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == rGHGR_BackUp0) {
+			backUpMod(2);
+		}
+		else if (state == rGHGR_LowerIntake) {
+			intake.Set(DoubleSolenoid::kReverse);
+			if (timer.Get() > 1) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == rGHGR_DriveToHopper) {
+			//TODO: drive to hopper
+			if (timer.Get() > 3) {
+				timer.Reset();
+				state++;
+			}
+		}
+	}
+
+	void autoCenterGear() {
+		if (state == 0) {
+			backUpMod(15);
+		}
+	}
+
+	void autoLeftGearReload() {
+		if (state == lGR_LowGear) {
+			shifter.Set(DoubleSolenoid::kForward);
+			if (timer.Get() > 1) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == lGR_BackUp0) {
+			backUpMod(2);
+		}
+		else if (state == lGR_RotateRight0) {
+			if (initialAngle == -1) {
+				initialAngle = gyro.GetAngle();
+			}
+			if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
+				driveTrain.TankDrive(0.5, -0.5);
+			}
+			else {
+				driveTrain.TankDrive(0.0, 0);
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == lGR_BackUp1) {
+			backUpMod(2);
+		}
+		else if (state == lGR_PlaceGear) {
+			//TODO: implement later
+			if (timer.Get() > 4) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == lGR_DriveForward) {
+			driveTrain.TankDrive(1, 1, false);
+			if (timer.Get() > 2) {
+				driveTrain.TankDrive(0.0, 0, false);
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == lGR_RotateRight1) {
+			if (initialAngle == -1) {
+				initialAngle = gyro.GetAngle();
+			}
+			if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
+				driveTrain.TankDrive(0.5, -0.5);
+			}
+			else {
+				driveTrain.TankDrive(0.0, 0);
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == lGR_LowerIntake) {
+			intake.Set(DoubleSolenoid::kReverse);
+			if (timer.Get() > 1) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == lGR_DriveToHopper) {
+			//TODO: drive to hopper
+			if (timer.Get() > 3) {
+				timer.Reset();
+				state++;
+			}
+		}
+	}
+
+	void autoHighGoalReload() {
+
+	}
+
 	void AutonomousInit()
 	{
+		mode = 0;
+		state = 0;
+		initialAngle = -1;
 
+		timer.Start();
 	}
 
 	void AutonomousPeriodic()
 	{
+		switch (mode) {
+		case rightGearHighGoal:
+			autoRightGearHighGoal();
+			break;
+		case rightGearHighGoalReload:
+			autoRightGearHighGoalReload();
+			break;
+		case centerGear:
+			autoCenterGear();
+			break;
+		case leftGearReload:
+			autoLeftGearReload();
+			break;
+		case highGoalReload:
+			autoHighGoalReload();
+			break;
+		default:
+			std::cout << "you screwed up" << std::endl;
+		}
 	}
 
 	void Shooting()
 	{
-		if (leftEncoder.GetRate() > 10 - LEFT_TOLERANCE && leftEncoder.GetRate() < 10 + LEFT_TOLERANCE) {
+		if (fabs(leftEncoder.GetRate() - 10) < LEFT_TOLERANCE) {
 			leftFeeder.SetSpeed(0.5);
 		}
 		else {
 			leftFeeder.SetSpeed(0);
 		}
-		if (rightEncoder.GetRate() > 10 - RIGHT_TOLERANCE && rightEncoder.GetRate() < 10 + RIGHT_TOLERANCE) {
+		if (fabs(rightEncoder.GetRate() - 10) < RIGHT_TOLERANCE) {
 			rightFeeder.SetSpeed(0.5);
 		}
 		else {
@@ -110,7 +313,7 @@ private:
 			right = 0;
 		}
 
-		driveTrain.TankDrive(left, right);
+		driveTrain.TankDrive(left, right);	//assign driving method & args
 
 		if (xbox.GetRawButton(lowerIntakeButton)) {
 			intake.Set(DoubleSolenoid::kReverse);
