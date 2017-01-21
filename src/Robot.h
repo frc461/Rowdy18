@@ -45,7 +45,7 @@ enum PWM {
 	intakeForwardPWM,
 	intakeReversePWM,
 	intakeRollerPWM,
-	climberUpPWM,
+	climberPWM,
 	shifterForwardPWM,
 	shifterReversePWM,
 	leftShooterPWM,
@@ -59,7 +59,7 @@ enum OperatorControls {
 	raiseIntakeButton = XboxButtonB,
 	spinIntakeForwardButton = XboxButtonX,
 	spinIntakeBackwardButton = XboxButtonY,
-	climberUpButton = XboxButtonLeftBumper,
+	climberButton = XboxButtonLeftBumper,
 	shootingButton = XboxAxisLeftTrigger
 };
 

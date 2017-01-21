@@ -26,7 +26,7 @@ class Robot: public IterativeRobot
 	RobotDrive driveTrain;	//handles driving methods
 	Spark intakeRoller;	//motor controller
 	DoubleSolenoid intake;	//pneumatic controller
-	Spark climberUp;
+	Spark climber;
 	DoubleSolenoid shifter;
 	Spark leftShooter;
 	Spark leftFeeder;
@@ -55,7 +55,7 @@ public:
 		driveTrain(frontLeft, backLeft, frontRight, backRight),
 		intakeRoller(intakeRollerPWM),
 		intake(intakeForwardPWM, intakeReversePWM),
-		climberUp(climberUpPWM),
+		climber(climberPWM),
 		shifter(shifterForwardPWM, shifterReversePWM),	//change gears
 		leftShooter(leftShooterPWM),
 		leftFeeder(leftFeederPWM),
@@ -343,18 +343,21 @@ private:
 		else{
 			intakeRoller.SetSpeed(0);
 		}
-		if(xbox.GetRawButton(climberUpButton)) {
-			climberUp.SetSpeed(.5);
+
+		if(xbox.GetRawButton(climberButton)) {
+			climber.SetSpeed(.5);
 		}
 		else{
-			climberUp.SetSpeed(0);
+			climber.SetSpeed(0);
 		}
+
 		if(rightStick.GetRawButton(shiftGearsButton)){
 			shifter.Set(SHIFTER_HIGH);
 		}
 		else{
 			shifter.Set(SHIFTER_LOW);
 		}
+
 		if(xbox.GetRawAxis(shootingButton) > .5) {
 			Shooting();
 		}
