@@ -39,9 +39,9 @@ class Robot: public IterativeRobot
 	ADXRS450_Gyro gyro;
 	Timer timer;
 
-	int mode;
-	int state;
-	double initialAngle;
+	int mode = 0;
+	int state = 0;
+	double initialAngle = -1;
 
 public:
 	Robot():
