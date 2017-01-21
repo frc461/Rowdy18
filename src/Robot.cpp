@@ -137,6 +137,8 @@ private:
 				timer.Reset();
 				state++;
 			}
+		} else {
+			StopShooting();
 		}
 	}
 
@@ -282,12 +284,15 @@ private:
 
 	void Shooting()
 	{
+		leftPID.Enable();
+		rightPID.Enable();
 		if (fabs(leftEncoder.GetRate() - 10) < LEFT_TOLERANCE) {
 			leftFeeder.SetSpeed(0.5);
 		}
 		else {
 			leftFeeder.SetSpeed(0);
 		}
+
 		if (fabs(rightEncoder.GetRate() - 10) < RIGHT_TOLERANCE) {
 			rightFeeder.SetSpeed(0.5);
 		}
@@ -296,13 +301,17 @@ private:
 		}
 	}
 
+	void StopShooting()
+	{
+		leftPID.Disable();
+		rightPID.Disable();
+	}
+
 
 	void TeleopInit()
 	{
 		leftPID.SetSetpoint(10);
-		leftPID.Enable();
 		rightPID.SetSetpoint(10);
-		rightPID.Enable();
 	}
 
 	void TeleopPeriodic()
@@ -354,6 +363,7 @@ private:
 			Shooting();
 		}
 		else {
+			StopShooting();
 			leftShooter.SetSpeed(0);
 			leftFeeder.SetSpeed(0);
 			rightShooter.SetSpeed(0);
