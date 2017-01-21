@@ -8,6 +8,11 @@
 #define LEFT_TOLERANCE 0.1
 #define RIGHT_TOLERANCE 0.1
 
+#define INTAKE_DOWN DoubleSolenoid::kReverse
+#define INTAKE_UP DoubleSolenoid::kForward
+#define SHIFTER_LOW DoubleSolenoid::kForward
+#define SHIFTER_HIGH DoubleSolenoid::kReverse
+
 class Robot: public IterativeRobot
 {
 
@@ -147,7 +152,7 @@ private:
 			backUpMod(2);
 		}
 		else if (state == rGHGR_LowerIntake) {
-			intake.Set(DoubleSolenoid::kReverse);
+			intake.Set(INTAKE_DOWN);
 			if (timer.Get() > 1) {
 				timer.Reset();
 				state++;
@@ -170,7 +175,7 @@ private:
 
 	void autoLeftGearReload() {
 		if (state == lGR_LowGear) {
-			shifter.Set(DoubleSolenoid::kForward);
+			shifter.Set(SHIFTER_LOW);
 			if (timer.Get() > 1) {
 				timer.Reset();
 				state++;
@@ -224,7 +229,7 @@ private:
 			}
 		}
 		else if (state == lGR_LowerIntake) {
-			intake.Set(DoubleSolenoid::kReverse);
+			intake.Set(INTAKE_DOWN);
 			if (timer.Get() > 1) {
 				timer.Reset();
 				state++;
@@ -316,25 +321,18 @@ private:
 		driveTrain.TankDrive(left, right);	//assign driving method & args
 
 		if (xbox.GetRawButton(lowerIntakeButton)) {
-			intake.Set(DoubleSolenoid::kReverse);
+			intake.Set(INTAKE_DOWN);
+		}
+		else if (xbox.GetRawButton(raiseIntakeButton)) {
+			intake.Set(INTAKE_UP);
 		}
 		else {
 			intake.Set(DoubleSolenoid::kOff);
 		}
 
-		if(xbox.GetRawButton(raiseIntakeButton)) {
-			intake.Set(DoubleSolenoid::kForward);
-		}
-		else {
-			intake.Set(DoubleSolenoid::kOff);
-		}
 		if(xbox.GetRawButton(spinIntakeForwardButton)) {
 			intakeRoller.SetSpeed(.5);
-		}
-		else {
-			intakeRoller.SetSpeed(0);
-		}
-		if(xbox.GetRawButton(spinIntakeBackwardButton)){
+		} else if(xbox.GetRawButton(spinIntakeBackwardButton)){
 			intakeRoller.SetSpeed(-.5);
 		}
 		else{
@@ -347,10 +345,10 @@ private:
 			climberUp.SetSpeed(0);
 		}
 		if(rightStick.GetRawButton(shiftGearsButton)){
-			shifter.Set(DoubleSolenoid::kForward);
+			shifter.Set(SHIFTER_HIGH);
 		}
 		else{
-			shifter.Set(DoubleSolenoid::kReverse);
+			shifter.Set(SHIFTER_LOW);
 		}
 		if(xbox.GetRawAxis(shootingButton) > .5) {
 			Shooting();
