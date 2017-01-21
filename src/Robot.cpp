@@ -145,10 +145,6 @@ private:
 	void autoRightGearHighGoalReload() {
 		if (state <= rGHGR_RGHG) {
 			autoRightGearHighGoal();
-			if (state == rGHG_ShootFuel + 1) {
-				timer.Reset();
-				state++;
-			}
 		}
 		else if (state == rGHGR_BackUp0) {
 			backUpMod(2);
