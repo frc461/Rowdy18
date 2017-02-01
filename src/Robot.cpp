@@ -13,11 +13,9 @@
 #define SHIFTER_LOW DoubleSolenoid::kForward
 #define SHIFTER_HIGH DoubleSolenoid::kReverse
 
-class Robot: public IterativeRobot
-{
+class Robot: public IterativeRobot {
 
-	Joystick leftStick; // only joystick
-	Joystick rightStick;
+	Joystick driveControl;
 	Joystick xbox;
 	Victor frontLeft;	//motor controller
 	Victor frontRight;
@@ -44,36 +42,25 @@ class Robot: public IterativeRobot
 	double initialAngle = -1;
 
 public:
-	Robot():
-		leftStick(0),	//get used to it
-		rightStick(1),
-		xbox(2),
-		frontLeft(frontLeftPWM),
-		frontRight(frontRightPWM),
-		backLeft(backLeftPWM),
-		backRight(backRightPWM),
-		driveTrain(frontLeft, backLeft, frontRight, backRight),
-		intakeRoller(intakeRollerPWM),
-		intake(intakeForwardPWM, intakeReversePWM),
-		climber(climberPWM),
-		shifter(shifterForwardPWM, shifterReversePWM),	//change gears
-		leftShooter(leftShooterPWM),
-		leftFeeder(leftFeederPWM),
-		rightShooter(rightShooterPWM),
-		rightFeeder(rightFeederPWM),
-		leftEncoder(leftEncoderA, leftEncoderB),
-		rightEncoder(rightEncoderA, rightEncoderB),
-		leftPID(0, 0, 0, &leftEncoder, &leftShooter),
-		rightPID(0, 0, 0, &rightEncoder, &rightShooter),
-		timer()
-	{
+	Robot() :
+			driveControl(0), xbox(2), frontLeft(frontLeftPWM), frontRight(
+					frontRightPWM), backLeft(backLeftPWM), backRight(
+					backRightPWM), driveTrain(frontLeft, backLeft, frontRight,
+					backRight), intakeRoller(intakeRollerPWM), intake(
+					intakeForwardPCM, intakeReversePCM), climber(climberPWM), shifter(
+					shifterForwardPCM, shifterReversePCM),	//change gears
+			leftShooter(leftShooterPWM), leftFeeder(leftFeederPWM), rightShooter(
+					rightShooterPWM), rightFeeder(rightFeederPWM), leftEncoder(
+					leftEncoderA, leftEncoderB), rightEncoder(rightEncoderA,
+					rightEncoderB), leftPID(0, 0, 0, &leftEncoder,
+					&leftShooter), rightPID(0, 0, 0, &rightEncoder,
+					&rightShooter), timer() {
 		SmartDashboard::init();
 		//b = DriverStationLCD::GetInstance();
 	}
 
 private:
-	void RobotInit()
-	{
+	void RobotInit() {
 	}
 
 	void backUpMod(double seconds) {
@@ -102,8 +89,7 @@ private:
 			}
 			if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
 				driveTrain.TankDrive(-0.5, 0.5);
-			}
-			else {
+			} else {
 				driveTrain.TankDrive(0.0, 0);
 				timer.Reset();
 				state++;
@@ -130,8 +116,7 @@ private:
 				timer.Reset();
 				state++;
 			}
-		}
-		else if (state == rGHG_ShootFuel) {
+		} else if (state == rGHG_ShootFuel) {
 			Shooting();
 			if (timer.Get() > 5) {
 				timer.Reset();
@@ -145,11 +130,9 @@ private:
 	void autoRightGearHighGoalReload() {
 		if (state <= rGHGR_RGHG) {
 			autoRightGearHighGoal();
-		}
-		else if (state == rGHGR_BackUp0) {
+		} else if (state == rGHGR_BackUp0) {
 			backUpMod(2);
-		}
-		else if (state == rGHGR_LowerIntake) {
+		} else if (state == rGHGR_LowerIntake) {
 			intake.Set(INTAKE_DOWN);
 			if (timer.Get() > 1) {
 				timer.Reset();
@@ -157,7 +140,7 @@ private:
 			}
 		}
 		else if (state == rGHGR_DriveToHopper) {
-			//TODO: drive to hopper
+			driveTrain.TankDrive(0.5, 0.5);
 			if (timer.Get() > 3) {
 				timer.Reset();
 				state++;
@@ -234,7 +217,7 @@ private:
 			}
 		}
 		else if (state == lGR_DriveToHopper) {
-			//TODO: drive to hopper
+			driveTrain.TankDrive(0.5, 0.5);
 			if (timer.Get() > 3) {
 				timer.Reset();
 				state++;
@@ -243,11 +226,99 @@ private:
 	}
 
 	void autoHighGoalReload() {
-
+		if (state == HGR_DriveForward0) {
+			driveTrain.TankDrive(1, 1, false);
+			if (timer.Get() > 5) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_RotateRight0) {
+			if (initialAngle == -1) {
+				initialAngle = gyro.GetAngle();
+			}
+			if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
+				driveTrain.TankDrive(0.5, -0.5);
+			}
+			else {
+				driveTrain.TankDrive(0.0, 0);
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_DriveForward1) {
+			driveTrain.TankDrive(1, 1, false);
+			if (timer.Get() > 5) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_RotateRight1) {
+			if (initialAngle == -1) {
+				initialAngle = gyro.GetAngle();
+			}
+			if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
+				driveTrain.TankDrive(0.5, -0.5);
+			}
+			else {
+				driveTrain.TankDrive(0.0, 0);
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_LowerIntake) {
+			intake.Set(INTAKE_DOWN);
+			if (timer.Get() > 1) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_RunIntake) {
+			intakeRoller.SetSpeed(.5);
+			if (timer.Get() > 1) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_DriveBackwards) {
+			driveTrain.TankDrive(-0.5, -0.5, false);
+			if (timer.Get() > 1) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_RotateRight2) {
+			if (initialAngle == -1) {
+				initialAngle = gyro.GetAngle();
+			}
+			if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
+				driveTrain.TankDrive(0.5, -0.5);
+			}
+			else {
+				driveTrain.TankDrive(0.0, 0);
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_DriveForward) {
+			driveTrain.TankDrive(1, 1, false);
+			if (timer.Get() > 5) {
+				timer.Reset();
+				state++;
+			}
+		}
+		else if (state == HGR_Shoot) {
+			Shooting();
+			if (timer.Get() > 5) {
+				timer.Reset();
+				state++;
+			}
+		} else {
+			StopShooting();
+		}
 	}
 
-	void AutonomousInit()
-	{
+	void AutonomousInit() {
 		mode = 0;
 		state = 0;
 		initialAngle = -1;
@@ -255,66 +326,58 @@ private:
 		timer.Start();
 	}
 
-	void AutonomousPeriodic()
-	{
+	void AutonomousPeriodic() {
 		switch (mode) {
-		case rightGearHighGoal:
+			case rightGearHighGoal:
 			autoRightGearHighGoal();
 			break;
-		case rightGearHighGoalReload:
+			case rightGearHighGoalReload:
 			autoRightGearHighGoalReload();
 			break;
-		case centerGear:
+			case centerGear:
 			autoCenterGear();
 			break;
-		case leftGearReload:
+			case leftGearReload:
 			autoLeftGearReload();
 			break;
-		case highGoalReload:
+			case highGoalReload:
 			autoHighGoalReload();
 			break;
-		default:
+			default:
 			std::cout << "you screwed up" << std::endl;
 		}
 	}
 
-	void Shooting()
-	{
+	void Shooting() {
 		leftPID.Enable();
 		rightPID.Enable();
 		if (fabs(leftEncoder.GetRate() - 10) < LEFT_TOLERANCE) {
 			leftFeeder.SetSpeed(0.5);
-		}
-		else {
+		} else {
 			leftFeeder.SetSpeed(0);
 		}
 
 		if (fabs(rightEncoder.GetRate() - 10) < RIGHT_TOLERANCE) {
 			rightFeeder.SetSpeed(0.5);
-		}
-		else {
+		} else {
 			rightFeeder.SetSpeed(0);
 		}
 	}
 
-	void StopShooting()
-	{
+	void StopShooting() {
 		leftPID.Disable();
 		rightPID.Disable();
 	}
 
-
-	void TeleopInit()
-	{
+	void TeleopInit() {
 		leftPID.SetSetpoint(10);
 		rightPID.SetSetpoint(10);
 	}
 
-	void TeleopPeriodic()
-	{
-		// TODO: Check this axis
-		double left = leftStick.GetRawAxis(0);
-		double right = rightStick.GetRawAxis(0);
+	void TeleopPeriodic() {
+// TODO: Check this axis
+		double left = driveControl.GetRawAxis(1);
+		double right = driveControl.GetRawAxis(5);
 
 		if (fabs(left) < DEADZONE) {
 			left = 0;
@@ -335,33 +398,32 @@ private:
 			intake.Set(DoubleSolenoid::kOff);
 		}
 
-		if(xbox.GetRawButton(spinIntakeForwardButton)) {
+		if (xbox.GetRawButton(spinIntakeForwardButton)) {
 			intakeRoller.SetSpeed(.5);
-		} else if(xbox.GetRawButton(spinIntakeBackwardButton)){
+		} else if (xbox.GetRawButton(spinIntakeBackwardButton)) {
 			intakeRoller.SetSpeed(-.5);
-		}
-		else{
+		} else {
 			intakeRoller.SetSpeed(0);
 		}
 
-		if(xbox.GetRawButton(climberButton)) {
+		if (xbox.GetRawButton(climberButton)) {
 			climber.SetSpeed(.5);
 		}
-		else{
+		else {
 			climber.SetSpeed(0);
 		}
 
-		if(rightStick.GetRawButton(shiftGearsButton)){
+
+		if (xbox.GetRawButton(shiftGearsButton)) {
 			shifter.Set(SHIFTER_HIGH);
 		}
-		else{
+		else {
 			shifter.Set(SHIFTER_LOW);
 		}
 
-		if(xbox.GetRawAxis(shootingButton) > .5) {
+		if (xbox.GetRawAxis(shootingButton) > .5) {
 			Shooting();
-		}
-		else {
+		} else {
 			StopShooting();
 			leftShooter.SetSpeed(0);
 			leftFeeder.SetSpeed(0);
@@ -370,8 +432,7 @@ private:
 		}
 	}
 
-	void TestPeriodic()
-	{
+	void TestPeriodic() {
 	}
 
 };

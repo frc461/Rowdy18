@@ -29,6 +29,20 @@ enum LeftGearReload {
 	lGR_DriveToHopper
 };
 
+enum HighGoalReload {
+	HGR_DriveForward0,
+	HGR_RotateRight0,
+	HGR_DriveForward1,
+	HGR_RotateRight1,
+	HGR_LowerIntake,
+	HGR_RunIntake,
+	HGR_DriveBackwards,
+	HGR_RotateRight2,
+	HGR_DriveForward,
+	HGR_Shoot
+
+};
+
 enum AutoMode {
 	rightGearHighGoal,
 	rightGearHighGoalReload,
@@ -38,20 +52,23 @@ enum AutoMode {
 };
 
 enum PWM {
-	frontLeftPWM,
-	frontRightPWM,
-	backLeftPWM,
-	backRightPWM,
-	intakeForwardPWM,
-	intakeReversePWM,
+	frontLeftPWM = 0,
+	frontRightPWM = 2,
+	backLeftPWM = 1,
+	backRightPWM = 3,
 	intakeRollerPWM,
 	climberPWM,
-	shifterForwardPWM,
-	shifterReversePWM,
-	leftShooterPWM,
-	leftFeederPWM,
-	rightShooterPWM,
-	rightFeederPWM
+	leftShooterPWM = 8,
+	leftFeederPWM = 6,
+	rightShooterPWM = 9,
+	rightFeederPWM = 7
+};
+
+enum PCM {
+	intakeForwardPCM = 2,
+	intakeReversePCM = 3,
+	shifterForwardPCM = 0,
+	shifterReversePCM = 1
 };
 
 enum OperatorControls {
