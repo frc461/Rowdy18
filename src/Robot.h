@@ -59,9 +59,10 @@ enum PWM {
 	intakeRollerPWM,
 	climberPWM,
 	leftShooterPWM = 8,
-	leftFeederPWM = 6,
+	leftTowerPWM = 6,
 	rightShooterPWM = 9,
-	rightFeederPWM = 7
+	rightTowerPWM = 7,
+	conveyorPWM = 5
 };
 
 enum PCM {
@@ -72,14 +73,23 @@ enum PCM {
 };
 
 enum OperatorControls {
-	lowerIntakeButton = XboxButtonA,
-	raiseIntakeButton = XboxButtonB,
-	spinIntakeForwardButton = XboxButtonX,
-	spinIntakeBackwardButton = XboxButtonY,
-	climberButton = XboxButtonLeftBumper,
-	shootingButton = XboxAxisLeftTrigger
+	spinIntakeForwardButton = 6,
+	spinIntakeBackwardButton = 5,
+	climberButton = 3,
+	shootingButton = 9,
+	towersInButton = 2,
+	towersOutButton = 1,
+	manualShootingButton = 4,
+	changeShooterSpeed = 0,
+	shootingModeSwitch = 7
 };
 
+enum HatControls {
+	lowerIntakePOV = 270,
+	raiseIntakePOV = 90,
+	conveyorInPOV = 0,
+	conveyorOutPOV = 180
+};
 enum DriverControls {
 	shiftGearsButton = 0
 };
