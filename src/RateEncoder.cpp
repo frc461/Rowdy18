@@ -5,7 +5,7 @@
  *      Author: WBI
  */
 
-#include <RateEncoder.h>
+#include "RateEncoder.h"
 
 RateEncoder::RateEncoder(int aChannel, int bChannel) : Encoder(aChannel, bChannel, false, k4X) {
 	// TODO Auto-generated constructor stub
