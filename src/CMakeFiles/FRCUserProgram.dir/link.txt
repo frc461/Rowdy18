@@ -1,1 +1,1 @@
-/usr/bin/c++       CMakeFiles/FRCUserProgram.dir/Robot.o CMakeFiles/FRCUserProgram.dir/RateEncoder.o  -o FRCUserProgram -rdynamic 
+/usr/bin/arm-frc-linux-gnueabi-g++   --std=gnu++11 -O0 -g3 -Wall -fmessage-length=0     CMakeFiles/FRCUserProgram.dir/Robot.cpp.o CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o  -o Debug/FRCUserProgram  -L/mnt/c/Users/WBI/wpilib/user/cpp/lib  -L/mnt/c/Users/WBI/wpilib/cpp/current/lib -rdynamic -lwpi -Wl,-rpath,/mnt/c/Users/WBI/wpilib/user/cpp/lib:/mnt/c/Users/WBI/wpilib/cpp/current/lib 

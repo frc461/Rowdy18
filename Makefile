@@ -69,14 +69,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/WBI/workspace/Rowdy18/CMakeFiles /mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles/progress.marks
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f CMakeFiles/Makefile2 src/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/WBI/workspace/Rowdy18/CMakeFiles /mnt/c/Users/WBI/workspace/Rowdy18/CMakeFiles/progress.marks
+	$(MAKE) -f CMakeFiles/Makefile2 all
 	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/WBI/workspace/Rowdy18/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f CMakeFiles/Makefile2 src/clean
+	$(MAKE) -f CMakeFiles/Makefile2 clean
 .PHONY : clean
 
 # The main clean target
@@ -85,80 +85,31 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f CMakeFiles/Makefile2 src/preinstall
+	$(MAKE) -f CMakeFiles/Makefile2 preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f CMakeFiles/Makefile2 src/preinstall
+	$(MAKE) -f CMakeFiles/Makefile2 preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
-# Convenience name for target.
-src/CMakeFiles/FRCUserProgram.dir/rule:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/FRCUserProgram.dir/rule
-.PHONY : src/CMakeFiles/FRCUserProgram.dir/rule
+#=============================================================================
+# Target rules for targets named FRCUserProgram
 
-# Convenience name for target.
-FRCUserProgram: src/CMakeFiles/FRCUserProgram.dir/rule
+# Build rule for target.
+FRCUserProgram: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 FRCUserProgram
 .PHONY : FRCUserProgram
 
 # fast build rule for target.
 FRCUserProgram/fast:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/build
+	$(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/build
 .PHONY : FRCUserProgram/fast
-
-RateEncoder.o: RateEncoder.cpp.o
-.PHONY : RateEncoder.o
-
-# target to build an object file
-RateEncoder.cpp.o:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o
-.PHONY : RateEncoder.cpp.o
-
-RateEncoder.i: RateEncoder.cpp.i
-.PHONY : RateEncoder.i
-
-# target to preprocess a source file
-RateEncoder.cpp.i:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.i
-.PHONY : RateEncoder.cpp.i
-
-RateEncoder.s: RateEncoder.cpp.s
-.PHONY : RateEncoder.s
-
-# target to generate assembly for a file
-RateEncoder.cpp.s:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.s
-.PHONY : RateEncoder.cpp.s
-
-Robot.o: Robot.cpp.o
-.PHONY : Robot.o
-
-# target to build an object file
-Robot.cpp.o:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o
-.PHONY : Robot.cpp.o
-
-Robot.i: Robot.cpp.i
-.PHONY : Robot.i
-
-# target to preprocess a source file
-Robot.cpp.i:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.i
-.PHONY : Robot.cpp.i
-
-Robot.s: Robot.cpp.s
-.PHONY : Robot.s
-
-# target to generate assembly for a file
-Robot.cpp.s:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.s
-.PHONY : Robot.cpp.s
 
 # Help Target
 help:
@@ -166,15 +117,9 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... FRCUserProgram"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... RateEncoder.o"
-	@echo "... RateEncoder.i"
-	@echo "... RateEncoder.s"
-	@echo "... Robot.o"
-	@echo "... Robot.i"
-	@echo "... Robot.s"
+	@echo "... FRCUserProgram"
 .PHONY : help
 
 
@@ -186,6 +131,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

@@ -35,94 +35,94 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/c/Users/WBI/workspace/Rowdy18/src
+CMAKE_SOURCE_DIR = /mnt/c/Users/WBI/workspace/Rowdy18
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/c/Users/WBI/workspace/Rowdy18/src
+CMAKE_BINARY_DIR = /mnt/c/Users/WBI/workspace/Rowdy18
 
 # Include any dependencies generated for this target.
-include CMakeFiles/FRCUserProgram.dir/depend.make
+include src/CMakeFiles/FRCUserProgram.dir/depend.make
 
 # Include the progress variables for this target.
-include CMakeFiles/FRCUserProgram.dir/progress.make
+include src/CMakeFiles/FRCUserProgram.dir/progress.make
 
 # Include the compile flags for this target's objects.
-include CMakeFiles/FRCUserProgram.dir/flags.make
+include src/CMakeFiles/FRCUserProgram.dir/flags.make
 
-CMakeFiles/FRCUserProgram.dir/Robot.o: CMakeFiles/FRCUserProgram.dir/flags.make
-CMakeFiles/FRCUserProgram.dir/Robot.o: Robot.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles $(CMAKE_PROGRESS_1)
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/FRCUserProgram.dir/Robot.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/FRCUserProgram.dir/Robot.o -c /mnt/c/Users/WBI/workspace/Rowdy18/src/Robot.cpp
+src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o: src/CMakeFiles/FRCUserProgram.dir/flags.make
+src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o: src/Robot.cpp
+	$(CMAKE_COMMAND) -E cmake_progress_report /mnt/c/Users/WBI/workspace/Rowdy18/CMakeFiles $(CMAKE_PROGRESS_1)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o"
+	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && /usr/bin/arm-frc-linux-gnueabi-g++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/FRCUserProgram.dir/Robot.cpp.o -c /mnt/c/Users/WBI/workspace/Rowdy18/src/Robot.cpp
 
-CMakeFiles/FRCUserProgram.dir/Robot.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/FRCUserProgram.dir/Robot.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /mnt/c/Users/WBI/workspace/Rowdy18/src/Robot.cpp > CMakeFiles/FRCUserProgram.dir/Robot.i
+src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/FRCUserProgram.dir/Robot.cpp.i"
+	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && /usr/bin/arm-frc-linux-gnueabi-g++  $(CXX_DEFINES) $(CXX_FLAGS) -E /mnt/c/Users/WBI/workspace/Rowdy18/src/Robot.cpp > CMakeFiles/FRCUserProgram.dir/Robot.cpp.i
 
-CMakeFiles/FRCUserProgram.dir/Robot.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/FRCUserProgram.dir/Robot.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /mnt/c/Users/WBI/workspace/Rowdy18/src/Robot.cpp -o CMakeFiles/FRCUserProgram.dir/Robot.s
+src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/FRCUserProgram.dir/Robot.cpp.s"
+	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && /usr/bin/arm-frc-linux-gnueabi-g++  $(CXX_DEFINES) $(CXX_FLAGS) -S /mnt/c/Users/WBI/workspace/Rowdy18/src/Robot.cpp -o CMakeFiles/FRCUserProgram.dir/Robot.cpp.s
 
-CMakeFiles/FRCUserProgram.dir/Robot.o.requires:
-.PHONY : CMakeFiles/FRCUserProgram.dir/Robot.o.requires
+src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o.requires:
+.PHONY : src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o.requires
 
-CMakeFiles/FRCUserProgram.dir/Robot.o.provides: CMakeFiles/FRCUserProgram.dir/Robot.o.requires
-	$(MAKE) -f CMakeFiles/FRCUserProgram.dir/build.make CMakeFiles/FRCUserProgram.dir/Robot.o.provides.build
-.PHONY : CMakeFiles/FRCUserProgram.dir/Robot.o.provides
+src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o.provides: src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o.requires
+	$(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o.provides.build
+.PHONY : src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o.provides
 
-CMakeFiles/FRCUserProgram.dir/Robot.o.provides.build: CMakeFiles/FRCUserProgram.dir/Robot.o
+src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o.provides.build: src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o
 
-CMakeFiles/FRCUserProgram.dir/RateEncoder.o: CMakeFiles/FRCUserProgram.dir/flags.make
-CMakeFiles/FRCUserProgram.dir/RateEncoder.o: RateEncoder.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles $(CMAKE_PROGRESS_2)
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/FRCUserProgram.dir/RateEncoder.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/FRCUserProgram.dir/RateEncoder.o -c /mnt/c/Users/WBI/workspace/Rowdy18/src/RateEncoder.cpp
+src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o: src/CMakeFiles/FRCUserProgram.dir/flags.make
+src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o: src/RateEncoder.cpp
+	$(CMAKE_COMMAND) -E cmake_progress_report /mnt/c/Users/WBI/workspace/Rowdy18/CMakeFiles $(CMAKE_PROGRESS_2)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o"
+	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && /usr/bin/arm-frc-linux-gnueabi-g++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o -c /mnt/c/Users/WBI/workspace/Rowdy18/src/RateEncoder.cpp
 
-CMakeFiles/FRCUserProgram.dir/RateEncoder.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/FRCUserProgram.dir/RateEncoder.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /mnt/c/Users/WBI/workspace/Rowdy18/src/RateEncoder.cpp > CMakeFiles/FRCUserProgram.dir/RateEncoder.i
+src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.i"
+	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && /usr/bin/arm-frc-linux-gnueabi-g++  $(CXX_DEFINES) $(CXX_FLAGS) -E /mnt/c/Users/WBI/workspace/Rowdy18/src/RateEncoder.cpp > CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.i
 
-CMakeFiles/FRCUserProgram.dir/RateEncoder.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/FRCUserProgram.dir/RateEncoder.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /mnt/c/Users/WBI/workspace/Rowdy18/src/RateEncoder.cpp -o CMakeFiles/FRCUserProgram.dir/RateEncoder.s
+src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.s"
+	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && /usr/bin/arm-frc-linux-gnueabi-g++  $(CXX_DEFINES) $(CXX_FLAGS) -S /mnt/c/Users/WBI/workspace/Rowdy18/src/RateEncoder.cpp -o CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.s
 
-CMakeFiles/FRCUserProgram.dir/RateEncoder.o.requires:
-.PHONY : CMakeFiles/FRCUserProgram.dir/RateEncoder.o.requires
+src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o.requires:
+.PHONY : src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o.requires
 
-CMakeFiles/FRCUserProgram.dir/RateEncoder.o.provides: CMakeFiles/FRCUserProgram.dir/RateEncoder.o.requires
-	$(MAKE) -f CMakeFiles/FRCUserProgram.dir/build.make CMakeFiles/FRCUserProgram.dir/RateEncoder.o.provides.build
-.PHONY : CMakeFiles/FRCUserProgram.dir/RateEncoder.o.provides
+src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o.provides: src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o.requires
+	$(MAKE) -f src/CMakeFiles/FRCUserProgram.dir/build.make src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o.provides.build
+.PHONY : src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o.provides
 
-CMakeFiles/FRCUserProgram.dir/RateEncoder.o.provides.build: CMakeFiles/FRCUserProgram.dir/RateEncoder.o
+src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o.provides.build: src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o
 
 # Object files for target FRCUserProgram
 FRCUserProgram_OBJECTS = \
-"CMakeFiles/FRCUserProgram.dir/Robot.o" \
-"CMakeFiles/FRCUserProgram.dir/RateEncoder.o"
+"CMakeFiles/FRCUserProgram.dir/Robot.cpp.o" \
+"CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o"
 
 # External object files for target FRCUserProgram
 FRCUserProgram_EXTERNAL_OBJECTS =
 
-FRCUserProgram: CMakeFiles/FRCUserProgram.dir/Robot.o
-FRCUserProgram: CMakeFiles/FRCUserProgram.dir/RateEncoder.o
-FRCUserProgram: CMakeFiles/FRCUserProgram.dir/build.make
-FRCUserProgram: CMakeFiles/FRCUserProgram.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX executable FRCUserProgram"
-	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/FRCUserProgram.dir/link.txt --verbose=$(VERBOSE)
+src/Debug/FRCUserProgram: src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o
+src/Debug/FRCUserProgram: src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o
+src/Debug/FRCUserProgram: src/CMakeFiles/FRCUserProgram.dir/build.make
+src/Debug/FRCUserProgram: src/CMakeFiles/FRCUserProgram.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX executable Debug/FRCUserProgram"
+	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/FRCUserProgram.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
-CMakeFiles/FRCUserProgram.dir/build: FRCUserProgram
-.PHONY : CMakeFiles/FRCUserProgram.dir/build
+src/CMakeFiles/FRCUserProgram.dir/build: src/Debug/FRCUserProgram
+.PHONY : src/CMakeFiles/FRCUserProgram.dir/build
 
-CMakeFiles/FRCUserProgram.dir/requires: CMakeFiles/FRCUserProgram.dir/Robot.o.requires
-CMakeFiles/FRCUserProgram.dir/requires: CMakeFiles/FRCUserProgram.dir/RateEncoder.o.requires
-.PHONY : CMakeFiles/FRCUserProgram.dir/requires
+src/CMakeFiles/FRCUserProgram.dir/requires: src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o.requires
+src/CMakeFiles/FRCUserProgram.dir/requires: src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o.requires
+.PHONY : src/CMakeFiles/FRCUserProgram.dir/requires
 
-CMakeFiles/FRCUserProgram.dir/clean:
-	$(CMAKE_COMMAND) -P CMakeFiles/FRCUserProgram.dir/cmake_clean.cmake
-.PHONY : CMakeFiles/FRCUserProgram.dir/clean
+src/CMakeFiles/FRCUserProgram.dir/clean:
+	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && $(CMAKE_COMMAND) -P CMakeFiles/FRCUserProgram.dir/cmake_clean.cmake
+.PHONY : src/CMakeFiles/FRCUserProgram.dir/clean
 
-CMakeFiles/FRCUserProgram.dir/depend:
-	cd /mnt/c/Users/WBI/workspace/Rowdy18/src && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /mnt/c/Users/WBI/workspace/Rowdy18/src /mnt/c/Users/WBI/workspace/Rowdy18/src /mnt/c/Users/WBI/workspace/Rowdy18/src /mnt/c/Users/WBI/workspace/Rowdy18/src /mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles/FRCUserProgram.dir/DependInfo.cmake --color=$(COLOR)
-.PHONY : CMakeFiles/FRCUserProgram.dir/depend
+src/CMakeFiles/FRCUserProgram.dir/depend:
+	cd /mnt/c/Users/WBI/workspace/Rowdy18 && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /mnt/c/Users/WBI/workspace/Rowdy18 /mnt/c/Users/WBI/workspace/Rowdy18/src /mnt/c/Users/WBI/workspace/Rowdy18 /mnt/c/Users/WBI/workspace/Rowdy18/src /mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles/FRCUserProgram.dir/DependInfo.cmake --color=$(COLOR)
+.PHONY : src/CMakeFiles/FRCUserProgram.dir/depend
 

@@ -388,7 +388,6 @@ private:
     // TODO: Check this axis
     double left = driveControl.GetRawAxis(XboxAxisLeftStickY);
     double right = driveControl.GetRawAxis(XboxAxisRightStickY);
-    doobule test = "A";
 
     if (fabs(left) < DEADZONE) {
       left = 0;

@@ -4,8 +4,8 @@ SET(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 SET(CMAKE_DEPENDS_CHECK_CXX
-  "/mnt/c/Users/WBI/workspace/Rowdy18/src/RateEncoder.cpp" "/mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles/FRCUserProgram.dir/RateEncoder.o"
-  "/mnt/c/Users/WBI/workspace/Rowdy18/src/Robot.cpp" "/mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles/FRCUserProgram.dir/Robot.o"
+  "/mnt/c/Users/WBI/workspace/Rowdy18/src/RateEncoder.cpp" "/mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o"
+  "/mnt/c/Users/WBI/workspace/Rowdy18/src/Robot.cpp" "/mnt/c/Users/WBI/workspace/Rowdy18/src/CMakeFiles/FRCUserProgram.dir/Robot.cpp.o"
   )
 SET(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -15,7 +15,7 @@ SET(CMAKE_TARGET_LINKED_INFO_FILES
 
 # The include file search paths:
 SET(CMAKE_C_TARGET_INCLUDE_PATH
-  "CMAKE_CURRENT_SOURCE_DIR"
+  "src/CMAKE_CURRENT_SOURCE_DIR"
   "/mnt/c/Users/WBI/wpilib/cpp/current/include"
   )
 SET(CMAKE_CXX_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})

@@ -1,8 +1,8 @@
 FILE(REMOVE_RECURSE
-  "CMakeFiles/FRCUserProgram.dir/Robot.o"
-  "CMakeFiles/FRCUserProgram.dir/RateEncoder.o"
-  "FRCUserProgram.pdb"
-  "FRCUserProgram"
+  "CMakeFiles/FRCUserProgram.dir/Robot.cpp.o"
+  "CMakeFiles/FRCUserProgram.dir/RateEncoder.cpp.o"
+  "Debug/FRCUserProgram.pdb"
+  "Debug/FRCUserProgram"
 )
 
 # Per-language clean rules from dependency scanning.
