@@ -91,7 +91,7 @@ private:
         initialAngle = gyro.GetAngle();
       }
       if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
-        driveTrain.TankDrive(-0.5, 0.5);
+                      driveTrain.TankDrive(-0.5, 0.5);
       } else {
         driveTrain.TankDrive(0.0, 0);
         timer.Reset();
