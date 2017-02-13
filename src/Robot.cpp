@@ -8,11 +8,11 @@
 #define LEFT_TOLERANCE 0.1
 #define RIGHT_TOLERANCE 0.1
 
-#define TOWER_SPEED -0.5
+#define TOWER_SPEED -0.9
 #define SHOOTING_SPEED 0.8
-#define CONVEYOR_SPEED 0.5
-#define ROLLER_SPEED 0.5
-#define CLIMBER_SPEED 0.5
+#define CONVEYOR_SPEED 0.9
+#define ROLLER_SPEED 0.9
+#define CLIMBER_SPEED 0.9
 
 #define INTAKE_DOWN DoubleSolenoid::kReverse
 #define INTAKE_UP DoubleSolenoid::kForward
@@ -23,22 +23,22 @@ class Robot: public IterativeRobot {
 
   Joystick driveControl;
   Joystick op;
-  Victor frontLeft;	//motor controller
+  Victor frontLeft;     //motor controller
   Victor frontRight;
   Victor backLeft;
   Victor backRight;
-  RobotDrive driveTrain;	//handles driving methods
-  Spark intakeRoller;	//motor controller
-  DoubleSolenoid intake;	//pneumatic controller
+  RobotDrive driveTrain;        //handles driving methods
+  Spark intakeRoller;   //motor controller
+  DoubleSolenoid intake;        //pneumatic controller
   Spark climber;
   DoubleSolenoid shifter;
   Spark leftShooter;
   Spark leftTower;
   Spark rightShooter;
   Spark rightTower;
-  RateEncoder leftEncoder;	//sensor
+  RateEncoder leftEncoder;      //sensor
   RateEncoder rightEncoder;
-  PIDController leftPID;	//error adjustor
+  PIDController leftPID;        //error adjustor
   PIDController rightPID;
   ADXRS450_Gyro gyro;
   Timer timer;
@@ -50,12 +50,12 @@ class Robot: public IterativeRobot {
 
 public:
   Robot() :
-    driveControl(0), op(2), frontLeft(frontLeftPWM), frontRight(
+    driveControl(0), op(1), frontLeft(frontLeftPWM), frontRight(
                                                                 frontRightPWM), backLeft(backLeftPWM), backRight(
                                                                                                                  backRightPWM), driveTrain(frontLeft, backLeft, frontRight,
                                                                                                                                            backRight), intakeRoller(intakeRollerPWM), intake(
                                                                                                                                                                                              intakeForwardPCM, intakeReversePCM), climber(climberPWM), shifter(
-                                                                                                                                                                                                                                                               shifterForwardPCM, shifterReversePCM),	//change gears
+                                                                                                                                                                                                                                                               shifterForwardPCM, shifterReversePCM),   //change gears
     leftShooter(leftShooterPWM), leftTower(leftTowerPWM), rightShooter(
                                                                        rightShooterPWM), rightTower(rightTowerPWM), leftEncoder(
                                                                                                                                 leftEncoderA, leftEncoderB), rightEncoder(rightEncoderA,
@@ -396,10 +396,14 @@ private:
       right = 0;
     }
 
-    driveTrain.TankDrive(left, right);	//assign driving method & args
+    driveTrain.TankDrive(left, right);  //assign driving method & args
 
     if (op.GetRawButton(shootingModeSwitch)) {
-      shootingSpeed = ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
+        if(op.GetRawButton(shootingButton)) {
+                shootingSpeed = ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
+        }else {
+                shootingSpeed = 0.0;
+        }
     }
     else {
       shootingSpeed = SHOOTING_SPEED;
@@ -407,14 +411,11 @@ private:
     leftPID.SetSetpoint(shootingSpeed);
     rightPID.SetSetpoint(shootingSpeed);
 
-    if (op.GetPOV() == lowerIntakePOV) {
+    if (op.GetRawButton(intakePositionSwitch)) {
       intake.Set(INTAKE_DOWN);
     }
-    else if (op.GetPOV() == raiseIntakePOV) {
-      intake.Set(INTAKE_UP);
-    }
     else {
-      intake.Set(DoubleSolenoid::kOff);
+      intake.Set(INTAKE_UP);
     }
 
     if (op.GetRawButton(spinIntakeForwardButton)) {
@@ -440,23 +441,23 @@ private:
       shifter.Set(SHIFTER_LOW);
     }
 
-    if (op.GetRawAxis(shootingButton) > .5) {
+    if (op.GetRawButton(shootingButton)) {
       Shooting();
     } else {
-      if (op.GetPOV() == conveyorInPOV) {
+      if (op.GetRawButton(conveyorIn)) {
         conveyor.SetSpeed(CONVEYOR_SPEED); //neg or pos
-      } else if (op.GetPOV() == conveyorOutPOV) {
+      } else if (op.GetRawButton(conveyorOut)) {
         conveyor.SetSpeed(-CONVEYOR_SPEED);
       } else {
         conveyor.SetSpeed(0.0);
       }
 
       if (op.GetRawButton(towersInButton)) {
-        leftTower.SetSpeed(TOWER_SPEED); //neg or pos
-        rightTower.SetSpeed(TOWER_SPEED);
-      } else if (op.GetRawButton(towersOutButton)) {
-        leftTower.SetSpeed(-TOWER_SPEED);
+        leftTower.SetSpeed(-TOWER_SPEED); //neg or pos
         rightTower.SetSpeed(-TOWER_SPEED);
+      } else if (op.GetRawButton(towersOutButton)) {
+        leftTower.SetSpeed(TOWER_SPEED);
+        rightTower.SetSpeed(TOWER_SPEED);
       } else {
         leftTower.SetSpeed(0.0);
         rightTower.SetSpeed(0.0);

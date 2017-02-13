@@ -56,13 +56,13 @@ enum PWM {
 	frontRightPWM = 2,
 	backLeftPWM = 1,
 	backRightPWM = 3,
-	intakeRollerPWM,
-	climberPWM,
+	intakeRollerPWM = 4,
+	climberPWM = 10,
 	leftShooterPWM = 8,
 	leftTowerPWM = 6,
 	rightShooterPWM = 9,
 	rightTowerPWM = 7,
-	conveyorPWM = 5
+	conveyorPWM = 10
 };
 
 enum PCM {
@@ -73,25 +73,31 @@ enum PCM {
 };
 
 enum OperatorControls {
-	spinIntakeForwardButton = 6,
-	spinIntakeBackwardButton = 5,
-	climberButton = 3,
-	shootingButton = 9,
-	towersInButton = 2,
-	towersOutButton = 1,
-	manualShootingButton = 4,
+	spinIntakeForwardButton = 12,
+	spinIntakeBackwardButton = 11,
+	climberButton = 10,
+	shootingButton = 3,
+	towersInButton = 7,
+	towersOutButton = 8,
+	manualShootingButton = 1,
 	changeShooterSpeed = 0,
-	shootingModeSwitch = 7
+	shootingModeSwitch = 6,
+	intakePositionSwitch = 5,
+	conveyorIn = 2,
+	conveyorOut = 9,
+	hoodPositionSwitch = 4 // TODO: Implement hood
 };
-
+/*
 enum HatControls {
 	lowerIntakePOV = 270,
 	raiseIntakePOV = 90,
 	conveyorInPOV = 0,
 	conveyorOutPOV = 180
 };
+*/
+
 enum DriverControls {
-	shiftGearsButton = 0
+	shiftGearsButton = 1
 };
 
 enum DIO {	//digital input/output
