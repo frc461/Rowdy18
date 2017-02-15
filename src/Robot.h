@@ -58,11 +58,11 @@ enum PWM {
 	backRightPWM = 3,
 	intakeRollerPWM = 4,
 	climberPWM = 10,
-	leftShooterPWM = 8,
+	leftShooterPWM = 8, //shooter 1
 	leftTowerPWM = 6,
-	rightShooterPWM = 9,
+	rightShooterPWM = 9, //shooter 2
 	rightTowerPWM = 7,
-	conveyorPWM = 10
+	conveyorPWM = 5
 };
 
 enum PCM {
@@ -75,15 +75,15 @@ enum PCM {
 enum OperatorControls {
 	spinIntakeForwardButton = 12,
 	spinIntakeBackwardButton = 11,
-	climberButton = 10,
-	shootingButton = 3,
+	climberButton = 2,
 	towersInButton = 7,
 	towersOutButton = 8,
-	manualShootingButton = 1,
+	shootingTowersConveyorButton = 1,
+	shootingButton = 3,
 	changeShooterSpeed = 0,
 	shootingModeSwitch = 6,
 	intakePositionSwitch = 5,
-	conveyorIn = 2,
+	conveyorIn = 10,
 	conveyorOut = 9,
 	hoodPositionSwitch = 4 // TODO: Implement hood
 };

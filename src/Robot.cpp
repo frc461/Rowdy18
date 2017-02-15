@@ -3,6 +3,7 @@
 #include "XboxJoystickMap.h"
 #include "RateEncoder.h"
 #include <Timer.h>
+#include "SettablePIDOut.h"
 
 #define DEADZONE 0.1
 #define LEFT_TOLERANCE 0.1
@@ -43,6 +44,8 @@ class Robot: public IterativeRobot {
   ADXRS450_Gyro gyro;
   Timer timer;
   Spark conveyor;
+  SettablePIDOut leftOut;
+  SettablePIDOut rightOut;
   int mode = 0;
   int state = 0;
   double initialAngle = -1;
@@ -50,18 +53,27 @@ class Robot: public IterativeRobot {
 
 public:
   Robot() :
-    driveControl(0), op(1), frontLeft(frontLeftPWM), frontRight(
-                                                                frontRightPWM), backLeft(backLeftPWM), backRight(
-                                                                                                                 backRightPWM), driveTrain(frontLeft, backLeft, frontRight,
-                                                                                                                                           backRight), intakeRoller(intakeRollerPWM), intake(
-                                                                                                                                                                                             intakeForwardPCM, intakeReversePCM), climber(climberPWM), shifter(
-                                                                                                                                                                                                                                                               shifterForwardPCM, shifterReversePCM),   //change gears
-    leftShooter(leftShooterPWM), leftTower(leftTowerPWM), rightShooter(
-                                                                       rightShooterPWM), rightTower(rightTowerPWM), leftEncoder(
-                                                                                                                                leftEncoderA, leftEncoderB), rightEncoder(rightEncoderA,
-                                                                                                                                                                          rightEncoderB), leftPID(0, 0, 0, &leftEncoder,
-                                                                                                                                                                                                  &leftShooter), rightPID(0, 0, 0, &rightEncoder,
-                                                                                                                                                                                                                          &rightShooter), timer(), conveyor(conveyorPWM) {
+    driveControl(0),
+    op(1),
+    frontLeft(frontLeftPWM),
+    frontRight(frontRightPWM),
+    backLeft(backLeftPWM),
+    backRight(backRightPWM),
+    driveTrain(frontLeft, backLeft, frontRight, backRight),
+    intakeRoller(intakeRollerPWM),
+    intake(intakeForwardPCM, intakeReversePCM),
+    climber(climberPWM),
+    shifter(shifterForwardPCM, shifterReversePCM),   //change gears
+    leftShooter(leftShooterPWM),
+    leftTower(leftTowerPWM),
+    rightShooter(rightShooterPWM),
+    rightTower(rightTowerPWM),
+    leftEncoder(leftEncoderA, leftEncoderB),
+    rightEncoder(rightEncoderA,rightEncoderB),
+    leftPID(0.1, 0.1, 0.1, &leftEncoder, &leftOut),
+    rightPID(0.1, 0.1, 0.1, &rightEncoder, &rightOut),
+    timer(),
+    conveyor(conveyorPWM) {
     SmartDashboard::init();
     //b = DriverStationLCD::GetInstance();
   }
@@ -349,17 +361,20 @@ private:
     leftPID.Enable();
     rightPID.Enable();
     conveyor.SetSpeed(CONVEYOR_SPEED);
-    if (fabs(leftEncoder.GetRate() - 10) < LEFT_TOLERANCE) {
+    if (fabs(leftEncoder.GetRate() - shootingSpeed) < LEFT_TOLERANCE) {
       leftTower.SetSpeed(TOWER_SPEED);
     } else {
       leftTower.SetSpeed(0);
     }
 
-    if (fabs(rightEncoder.GetRate() - 10) < RIGHT_TOLERANCE) {
-      rightTower.SetSpeed(TOWER_SPEED);
+    if (fabs(rightEncoder.GetRate() - shootingSpeed) < RIGHT_TOLERANCE) {
+      rightTower.SetSpeed(-TOWER_SPEED);
     } else {
       rightTower.SetSpeed(0);
     }
+
+    leftShooter.SetSpeed(leftOut.m_output);
+    rightShooter.SetSpeed(-rightOut.m_output);
   }
 
   void StopShooting() {
@@ -373,13 +388,15 @@ private:
   }
 
   void ManualShooting() {
+    printf("Shooting manually\n");
     leftTower.SetSpeed(TOWER_SPEED);
-    rightTower.SetSpeed(TOWER_SPEED);
+    rightTower.SetSpeed(-TOWER_SPEED);
     conveyor.SetSpeed(CONVEYOR_SPEED);
     leftShooter.SetSpeed(shootingSpeed);
-    rightShooter.SetSpeed(shootingSpeed);
+    rightShooter.SetSpeed(-shootingSpeed);
   }
 
+  // Takes a speed [-1.0, 1.0] and scales to [0.0, 1.0]
   double ScaledShootingSpeed(double rawAxis) {
     return (rawAxis/2) + 0.5;
   }
@@ -399,17 +416,13 @@ private:
     driveTrain.TankDrive(left, right);  //assign driving method & args
 
     if (op.GetRawButton(shootingModeSwitch)) {
-        if(op.GetRawButton(shootingButton)) {
-                shootingSpeed = ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
-        }else {
-                shootingSpeed = 0.0;
-        }
-    }
-    else {
+      printf("Manual shooting\n");
+      shootingSpeed = -ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
       shootingSpeed = SHOOTING_SPEED;
     }
+
     leftPID.SetSetpoint(shootingSpeed);
-    rightPID.SetSetpoint(shootingSpeed);
+    rightPID.SetSetpoint(-shootingSpeed);
 
     if (op.GetRawButton(intakePositionSwitch)) {
       intake.Set(INTAKE_DOWN);
@@ -441,36 +454,54 @@ private:
       shifter.Set(SHIFTER_LOW);
     }
 
-    if (op.GetRawButton(shootingButton)) {
-      Shooting();
+    if (!op.GetRawButton(shootingModeSwitch)) {
+      //Automatic mode
+      if (op.GetRawButton(shootingButton)) {
+        printf("Shooting button pressed\n");
+        Shooting();
+      } else {
+        StopShooting();
+      }
     } else {
-      if (op.GetRawButton(conveyorIn)) {
-        conveyor.SetSpeed(CONVEYOR_SPEED); //neg or pos
-      } else if (op.GetRawButton(conveyorOut)) {
-        conveyor.SetSpeed(-CONVEYOR_SPEED);
-      } else {
-        conveyor.SetSpeed(0.0);
-      }
-
-      if (op.GetRawButton(towersInButton)) {
-        leftTower.SetSpeed(-TOWER_SPEED); //neg or pos
-        rightTower.SetSpeed(-TOWER_SPEED);
-      } else if (op.GetRawButton(towersOutButton)) {
-        leftTower.SetSpeed(TOWER_SPEED);
-        rightTower.SetSpeed(TOWER_SPEED);
-      } else {
-        leftTower.SetSpeed(0.0);
-        rightTower.SetSpeed(0.0);
-      }
-      if (op.GetRawButton(manualShootingButton)) {
+      StopShooting();
+      if (op.GetRawButton(shootingTowersConveyorButton)) {
+        printf("Manual shooting button pressed\n");
         ManualShooting();
       }
       else {
-        leftShooter.SetSpeed(0);
-        rightShooter.SetSpeed(0);
-      }
+        if (op.GetRawButton(conveyorIn)) {
+          printf("Conveyor in pressed\n");
+          conveyor.SetSpeed(CONVEYOR_SPEED); //neg or pos
+        } else if (op.GetRawButton(conveyorOut)) {
+          printf("Conveyor out pressed\n");
+          conveyor.SetSpeed(-CONVEYOR_SPEED);
+        } else {
+          printf("Stopping conveyor\n");
+          conveyor.SetSpeed(0.0);
+        }
 
-      StopShooting();
+        if (op.GetRawButton(shootingButton)){
+          printf("Just manual shooting\n");
+          printf("Shooting speed: %lf\n", shootingSpeed);
+          leftShooter.SetSpeed(shootingSpeed);
+          rightShooter.SetSpeed(-shootingSpeed);
+        } else {
+          printf("Stopping manual shooting\n");
+          leftShooter.SetSpeed(0);
+          rightShooter.SetSpeed(0);
+        }
+
+        if (op.GetRawButton(towersInButton)) {
+          leftTower.SetSpeed(TOWER_SPEED); //neg or pos
+          rightTower.SetSpeed(-TOWER_SPEED);
+        } else if (op.GetRawButton(towersOutButton)) {
+          leftTower.SetSpeed(-TOWER_SPEED);
+          rightTower.SetSpeed(TOWER_SPEED);
+        } else {
+          leftTower.SetSpeed(0.0);
+          rightTower.SetSpeed(0.0);
+        }
+      }
     }
   }
 
