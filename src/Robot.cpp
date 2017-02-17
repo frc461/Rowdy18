@@ -13,12 +13,12 @@
 #define SHOOTING_SPEED 0.8
 #define CONVEYOR_SPEED 0.9
 #define ROLLER_SPEED 0.9
-#define CLIMBER_SPEED 0.9
+#define CLIMBER_SPEED -0.9
 
 #define INTAKE_DOWN DoubleSolenoid::kReverse
 #define INTAKE_UP DoubleSolenoid::kForward
-#define SHIFTER_LOW DoubleSolenoid::kForward
-#define SHIFTER_HIGH DoubleSolenoid::kReverse
+#define SHIFTER_LOW DoubleSolenoid::kReverse
+#define SHIFTER_HIGH DoubleSolenoid::kForward
 
 class Robot: public IterativeRobot {
 
@@ -418,7 +418,8 @@ private:
     if (op.GetRawButton(shootingModeSwitch)) {
       printf("Manual shooting\n");
       shootingSpeed = -ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
-      shootingSpeed = SHOOTING_SPEED;
+    } else {
+    	shootingSpeed = SHOOTING_SPEED;
     }
 
     leftPID.SetSetpoint(shootingSpeed);
@@ -447,7 +448,7 @@ private:
     }
 
 
-    if (op.GetRawButton(shiftGearsButton)) {
+    if (driveControl.GetRawAxis(shiftGearsAxis) > 0.5) {
       shifter.Set(SHIFTER_HIGH);
     }
     else {
@@ -483,8 +484,8 @@ private:
         if (op.GetRawButton(shootingButton)){
           printf("Just manual shooting\n");
           printf("Shooting speed: %lf\n", shootingSpeed);
-          leftShooter.SetSpeed(shootingSpeed);
-          rightShooter.SetSpeed(-shootingSpeed);
+          leftShooter.SetSpeed(-shootingSpeed);
+          rightShooter.SetSpeed(shootingSpeed);
         } else {
           printf("Stopping manual shooting\n");
           leftShooter.SetSpeed(0);

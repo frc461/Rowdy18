@@ -97,7 +97,7 @@ enum HatControls {
 */
 
 enum DriverControls {
-	shiftGearsButton = 1
+	shiftGearsAxis = 3
 };
 
 enum DIO {	//digital input/output
