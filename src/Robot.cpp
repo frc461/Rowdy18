@@ -41,8 +41,10 @@ class Robot: public IterativeRobot {
   Spark leftTower;
   Spark rightShooter;
   Spark rightTower;
-  RateEncoder leftEncoder;      //sensor
-  RateEncoder rightEncoder;
+  RateEncoder leftShooterEncoder;      //sensor
+  RateEncoder rightShooterEncoder;
+  Encoder leftDriveEncoder;
+  Encoder rightDriveEncoder;
   PIDController leftPID;        //error adjustor
   PIDController rightPID;
   ADXRS450_Gyro gyro;
@@ -73,10 +75,12 @@ public:
     leftTower(leftTowerPWM),
     rightShooter(rightShooterPWM),
     rightTower(rightTowerPWM),
-    leftEncoder(leftEncoderA, leftEncoderB),
-    rightEncoder(rightEncoderA,rightEncoderB),
-    leftPID(0.1, 0.1, 0.1, &leftEncoder, &leftOut),
-    rightPID(0.1, 0.1, 0.1, &rightEncoder, &rightOut),
+    leftShooterEncoder(leftShooterEncoderA, leftShooterEncoderB),
+    rightShooterEncoder(rightShooterEncoderA, rightShooterEncoderB),
+	leftDriveEncoder(leftDriveEncoderA, leftDriveEncoderB),
+	rightDriveEncoder(rightDriveEncoderA, rightDriveEncoderB),
+    leftPID(0.1, 0.1, 0.1, &leftShooterEncoder, &leftOut),
+    rightPID(0.1, 0.1, 0.1, &rightShooterEncoder, &rightOut),
     timer(),
     conveyor(conveyorPWM) {
     SmartDashboard::init();
@@ -366,13 +370,13 @@ private:
     leftPID.Enable();
     rightPID.Enable();
     conveyor.SetSpeed(CONVEYOR_SPEED);
-    if (fabs(leftEncoder.GetRate() - shootingSpeed) < LEFT_TOLERANCE) {
+    if (fabs(leftShooterEncoder.GetRate() - shootingSpeed) < LEFT_TOLERANCE) {
       leftTower.SetSpeed(TOWER_SPEED);
     } else {
       leftTower.SetSpeed(0);
     }
 
-    if (fabs(rightEncoder.GetRate() - shootingSpeed) < RIGHT_TOLERANCE) {
+    if (fabs(rightShooterEncoder.GetRate() - shootingSpeed) < RIGHT_TOLERANCE) {
       rightTower.SetSpeed(-TOWER_SPEED);
     } else {
       rightTower.SetSpeed(0);
@@ -412,6 +416,14 @@ private:
 	  SmartDashboard::PutNumber("Total current", pdp->GetTotalCurrent());
 	  SmartDashboard::PutNumber("Conveyor current", pdp->GetCurrent(pdpConveyor));
 	  SmartDashboard::PutNumber("Intake current", pdp->GetCurrent(pdpIntake));
+	  SmartDashboard::PutNumber("Intake current analog", (currentSensor.GetAverageVoltage() - 0.6) / 0.04);
+
+	  SmartDashboard::PutNumber("Left Drive Encoder", leftDriveEncoder.Get());
+	  SmartDashboard::PutNumber("Right Drive Encoder", rightDriveEncoder.Get());
+	  SmartDashboard::PutNumber("Left Shooter Encoder", leftShooterEncoder.Get());
+	  SmartDashboard::PutNumber("Right Shooter Encoder", rightShooterEncoder.Get());
+
+	  SmartDashboard::PutNumber("Shooting setpoint", shootingSpeed * 6000);
   }
 
   void TeleopPeriodic() {
