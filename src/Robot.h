@@ -101,12 +101,12 @@ enum DriverControls {
 };
 
 enum DIO {	//digital input/output
-	leftDriveEncoderA = 0,
-	leftDriveEncoderB = 1,
+	leftDriveEncoderA = 1,
+	leftDriveEncoderB = 0,
 	rightDriveEncoderA = 2,
 	rightDriveEncoderB = 3,
-	leftShooterEncoderA = 4,
-	leftShooterEncoderB = 5,
+	leftShooterEncoderA = 5,
+	leftShooterEncoderB = 4,
 	rightShooterEncoderA = 6,
 	rightShooterEncoderB = 7
 };

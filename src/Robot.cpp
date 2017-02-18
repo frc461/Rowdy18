@@ -410,8 +410,8 @@ private:
     leftTower.SetSpeed(TOWER_SPEED);
     rightTower.SetSpeed(-TOWER_SPEED);
     conveyor.SetSpeed(CONVEYOR_SPEED);
-    leftShooter.SetSpeed(shootingSpeed);
-    rightShooter.SetSpeed(-shootingSpeed);
+    leftShooter.SetSpeed(-shootingSpeed);
+    rightShooter.SetSpeed(shootingSpeed);
   }
 
   // Takes a speed [-1.0, 1.0] and scales to [0.0, 1.0]
