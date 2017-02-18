@@ -7,7 +7,7 @@
 
 #include "RateEncoder.h"
 
-RateEncoder::RateEncoder(int aChannel, int bChannel) : Encoder(aChannel, bChannel, false, k4X) {
+RateEncoder::RateEncoder(int aChannel, int bChannel) : Encoder(aChannel, bChannel, false, k1X) {
 	// TODO Auto-generated constructor stub
 }
 

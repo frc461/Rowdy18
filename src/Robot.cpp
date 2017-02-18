@@ -20,8 +20,8 @@
 #define SHIFTER_LOW DoubleSolenoid::kReverse
 #define SHIFTER_HIGH DoubleSolenoid::kForward
 
-//#define D_SHOOTING
-#define D_INTAKE
+#define D_SHOOTING
+//#define D_INTAKE
 //#define D_CONVEYOR
 
 //#define USE_PID_FOR_MANUAL_SHOOTING
@@ -47,13 +47,13 @@ class Robot: public IterativeRobot {
   RateEncoder rightShooterEncoder;
   Encoder leftDriveEncoder;
   Encoder rightDriveEncoder;
+  SettablePIDOut leftOut;
+  SettablePIDOut rightOut;
   PIDController leftPID;        //error adjustor
   PIDController rightPID;
   ADXRS450_Gyro gyro;
   Timer timer;
   Spark conveyor;
-  SettablePIDOut leftOut;
-  SettablePIDOut rightOut;
   AnalogInput currentSensor;
   Preferences *prefs;
   int mode = 0;
@@ -83,8 +83,10 @@ public:
     rightShooterEncoder(rightShooterEncoderA, rightShooterEncoderB),
 	leftDriveEncoder(leftDriveEncoderA, leftDriveEncoderB),
 	rightDriveEncoder(rightDriveEncoderA, rightDriveEncoderB),
-    leftPID(0.1, 0.1, 0.1, &leftShooterEncoder, &leftOut),
-    rightPID(0.1, 0.1, 0.1, &rightShooterEncoder, &rightOut),
+	leftOut(),
+	rightOut(),
+    leftPID(0, 0.00001, 0, &leftShooterEncoder, &leftOut,0.05),
+    rightPID(0, 0.00001, 0, &rightShooterEncoder, &rightOut,0.05),
     timer(),
     conveyor(conveyorPWM),
 	currentSensor(3),
@@ -111,16 +113,28 @@ private:
 
 #ifdef USE_PID_FOR_MANUAL_SHOOTING
   void Shoot() {
-	  leftPID.Enable();
-	  rightPID.Enable();
+	  if (!leftPID.IsEnabled()) {
+		  leftPID.Enable();
+	  }
+	  if (!rightPID.IsEnabled()) {
+		  rightPID.Enable();
+	  }
 
-	  leftShooter.SetSpeed(leftOut.m_output);
-	  rightShooter.SetSpeed(-rightOut.m_output);
+	  double outLeft = -(leftOut.m_output + leftPID.GetSetpoint() * .00003);
+	  double outRight = rightOut.m_output + rightPID.GetSetpoint() * .00003;
+
+	  leftShooter.SetSpeed(outLeft);
+	  rightShooter.SetSpeed(outRight);
+#ifdef D_SHOOTING
+	  printf("left input: %lf, setpoint: %lf, output: %lf, error: %lf, avg error: %lf\n", leftShooterEncoder.PIDGet(), leftPID.GetSetpoint(), outLeft, leftPID.GetError(), leftPID.GetAvgError());
+	  printf("right input: %lf, setpoint: %lf, output: %lf, error: %lf, avg error: %lf\n", rightShooterEncoder.PIDGet(), rightPID.GetSetpoint(), outRight, rightPID.GetError(), rightPID.GetAvgError());
+	  printf("LeftP: %lf, RightP: %lf\n", leftPID.GetP(), rightPID.GetP());
+#endif
   }
 #else
   void Shoot() {
-	  leftShooter.SetSpeed(-shootingSpeed);
-	  rightShooter.SetSpeed(shootingSpeed);
+	  leftShooter.SetSpeed(shootingSpeed);
+	  rightShooter.SetSpeed(-shootingSpeed);
   }
 
 #endif
@@ -421,6 +435,8 @@ private:
   void TeleopInit() {
     leftPID.SetSetpoint(shootingSpeed);
     rightPID.SetSetpoint(shootingSpeed);
+    leftPID.SetOutputRange(0, .6);
+    rightPID.SetOutputRange(0, 0.6);
   }
 
   void ManualShooting() {
@@ -435,7 +451,7 @@ private:
 
   // Takes a speed [-1.0, 1.0] and scales to [0.0, 1.0]
   double ScaledShootingSpeed(double rawAxis) {
-    return (rawAxis/2) + 0.5;
+    return (-rawAxis/2) + 0.5;
   }
 
   void Monitor() {
@@ -446,13 +462,15 @@ private:
 
 	  SmartDashboard::PutNumber("Left Drive Encoder", leftDriveEncoder.Get());
 	  SmartDashboard::PutNumber("Right Drive Encoder", rightDriveEncoder.Get());
-	  SmartDashboard::PutNumber("Left Shooter Encoder", leftShooterEncoder.Get());
-	  SmartDashboard::PutNumber("Right Shooter Encoder", rightShooterEncoder.Get());
+	  SmartDashboard::PutNumber("Left Shooter Encoder", leftShooterEncoder.PIDGet());
+	  SmartDashboard::PutNumber("Right Shooter Encoder", rightShooterEncoder.PIDGet());
 
-	  SmartDashboard::PutNumber("Shooting setpoint", shootingSpeed * 6000);
+	  SmartDashboard::PutNumber("Shooting setpoint", shootingSpeed * -6000);
   }
 
   void TeleopPeriodic() {
+//	  leftShooter.SetSpeed(-0.75);
+//	  rightShooter.SetSpeed(0.75);
     // TODO: Check this axis
     double left = driveControl.GetRawAxis(XboxAxisLeftStickY);
     double right = driveControl.GetRawAxis(XboxAxisRightStickY);
@@ -475,8 +493,8 @@ private:
     	shootingSpeed = SHOOTING_SPEED;
     }
 
-    leftPID.SetSetpoint(shootingSpeed);
-    rightPID.SetSetpoint(-shootingSpeed);
+    leftPID.SetSetpoint(-shootingSpeed * 16000);
+    rightPID.SetSetpoint(-shootingSpeed * 16000);
 
     if (op.GetRawButton(intakePositionSwitch)) {
       intake.Set(INTAKE_DOWN);
@@ -528,7 +546,6 @@ private:
         StopShooting();
       }
     } else {
-      StopShooting();
       if (op.GetRawButton(shootingTowersConveyorButton)) {
 #ifdef D_SHOOTING
         printf("Manual shooting button pressed\n");

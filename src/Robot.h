@@ -58,9 +58,9 @@ enum PWM {
 	backRightPWM = 3,
 	intakeRollerPWM = 4,
 	climberPWM = 10,
-	leftShooterPWM = 8, //shooter 1
+	leftShooterPWM = 9, //shooter 1
 	leftTowerPWM = 6,
-	rightShooterPWM = 9, //shooter 2
+	rightShooterPWM = 8, //shooter 2
 	rightTowerPWM = 7,
 	conveyorPWM = 5
 };
