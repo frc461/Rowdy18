@@ -115,3 +115,11 @@ enum PDP_CHANNELS {
 	pdpConveyor = 7,
 	pdpIntake = 5
 };
+
+
+enum LOG_TYPE {
+	logShooter,
+	logDriveTrain
+};
+
+static const char* LOG_PREFIXES[] = {"Shooter", "DriveTrain"};

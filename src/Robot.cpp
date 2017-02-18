@@ -24,6 +24,8 @@
 #define D_INTAKE
 //#define D_CONVEYOR
 
+//#define USE_PID_FOR_MANUAL_SHOOTING
+
 class Robot: public IterativeRobot {
 
   Joystick driveControl;
@@ -107,6 +109,32 @@ private:
     }
   }
 
+#ifdef USE_PID_FOR_MANUAL_SHOOTING
+  void Shoot() {
+	  leftPID.Enable();
+	  rightPID.Enable();
+
+	  leftShooter.SetSpeed(leftOut.m_output);
+	  rightShooter.SetSpeed(-rightOut.m_output);
+  }
+#else
+  void Shoot() {
+	  leftShooter.SetSpeed(-shootingSpeed);
+	  rightShooter.SetSpeed(shootingSpeed);
+  }
+
+#endif
+
+  void StopShooting() {
+	  leftPID.Disable();
+	  rightPID.Disable();
+	  leftPID.Reset();
+	  rightPID.Reset();
+	  leftShooter.SetSpeed(0);
+	  rightShooter.SetSpeed(0);
+  }
+
+
   void autoRightGearHighGoal() {
     if (state == rGHG_LowGear) {
       shifter.Set(DoubleSolenoid::kForward);
@@ -142,7 +170,7 @@ private:
         state++;
       }
     } else if (state == rGHG_ShootFuel) {
-      Shooting();
+      AutomaticShooting();
       if (timer.Get() > 5) {
         timer.Reset();
         state++;
@@ -333,7 +361,7 @@ private:
       }
     }
     else if (state == HGR_Shoot) {
-      Shooting();
+      AutomaticShooting();
       if (timer.Get() > 5) {
         timer.Reset();
         state++;
@@ -373,9 +401,9 @@ private:
     }
   }
 
-  void Shooting() {
-    leftPID.Enable();
-    rightPID.Enable();
+  void AutomaticShooting() {
+    Shoot();
+
     conveyor.SetSpeed(CONVEYOR_SPEED);
     if (fabs(leftShooterEncoder.GetRate() - shootingSpeed) < LEFT_TOLERANCE) {
       leftTower.SetSpeed(TOWER_SPEED);
@@ -388,14 +416,6 @@ private:
     } else {
       rightTower.SetSpeed(0);
     }
-
-    leftShooter.SetSpeed(leftOut.m_output);
-    rightShooter.SetSpeed(-rightOut.m_output);
-  }
-
-  void StopShooting() {
-    leftPID.Disable();
-    rightPID.Disable();
   }
 
   void TeleopInit() {
@@ -410,8 +430,7 @@ private:
     leftTower.SetSpeed(TOWER_SPEED);
     rightTower.SetSpeed(-TOWER_SPEED);
     conveyor.SetSpeed(CONVEYOR_SPEED);
-    leftShooter.SetSpeed(-shootingSpeed);
-    rightShooter.SetSpeed(shootingSpeed);
+    Shoot();
   }
 
   // Takes a speed [-1.0, 1.0] and scales to [0.0, 1.0]
@@ -504,7 +523,7 @@ private:
 #ifdef D_SHOOTING
         printf("Shooting button pressed\n");
 #endif
-        Shooting();
+        AutomaticShooting();
       } else {
         StopShooting();
       }
@@ -539,14 +558,12 @@ private:
           printf("Just manual shooting\n");
           printf("Shooting speed: %lf\n", shootingSpeed);
 #endif
-          leftShooter.SetSpeed(-shootingSpeed);
-          rightShooter.SetSpeed(shootingSpeed);
+          Shoot();
         } else {
 #ifdef D_SHOOTING
           printf("Stopping manual shooting\n");
 #endif
-          leftShooter.SetSpeed(0);
-          rightShooter.SetSpeed(0);
+          StopShooting();
         }
 
         if (op.GetRawButton(towersInButton)) {
