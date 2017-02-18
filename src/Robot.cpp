@@ -52,6 +52,8 @@ class Robot: public IterativeRobot {
   Spark conveyor;
   SettablePIDOut leftOut;
   SettablePIDOut rightOut;
+  AnalogInput currentSensor;
+  Preferences *prefs;
   int mode = 0;
   int state = 0;
   double initialAngle = -1;
@@ -82,13 +84,18 @@ public:
     leftPID(0.1, 0.1, 0.1, &leftShooterEncoder, &leftOut),
     rightPID(0.1, 0.1, 0.1, &rightShooterEncoder, &rightOut),
     timer(),
-    conveyor(conveyorPWM) {
+    conveyor(conveyorPWM),
+	currentSensor(3),
+	prefs(){
     SmartDashboard::init();
     //b = DriverStationLCD::GetInstance();
   }
 
 private:
+  double rollerSpeed;
   void RobotInit() {
+	    prefs = Preferences::GetInstance();
+	    rollerSpeed = prefs->GetDouble("rollerSpeed", 0.9);
   }
 
   void backUpMod(double seconds) {
@@ -463,12 +470,12 @@ private:
 #ifdef D_INTAKE
     	printf("Moving intake forward\n");
 #endif
-      intakeRoller.Set(ROLLER_SPEED);
+      intakeRoller.Set(rollerSpeed);
     } else if (op.GetRawButton(spinIntakeBackwardButton)) {
 #ifdef D_INTAKE
     	printf("Moving intake backward\n");
 #endif
-      intakeRoller.Set(-ROLLER_SPEED);
+      intakeRoller.Set(-rollerSpeed);
     } else {
 #ifdef D_INTAKE
     	printf("Stopping intake\n");
