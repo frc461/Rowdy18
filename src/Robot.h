@@ -106,3 +106,8 @@ enum DIO {	//digital input/output
 	rightEncoderA,
 	rightEncoderB
 };
+
+enum PDP_CHANNELS {
+	pdpConveyor = 7,
+	pdpIntake = 5
+};

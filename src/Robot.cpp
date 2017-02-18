@@ -20,6 +20,10 @@
 #define SHIFTER_LOW DoubleSolenoid::kReverse
 #define SHIFTER_HIGH DoubleSolenoid::kForward
 
+//#define D_SHOOTING
+#define D_INTAKE
+//#define D_CONVEYOR
+
 class Robot: public IterativeRobot {
 
   Joystick driveControl;
@@ -50,6 +54,7 @@ class Robot: public IterativeRobot {
   int state = 0;
   double initialAngle = -1;
   double shootingSpeed = SHOOTING_SPEED;
+  PowerDistributionPanel *pdp = new PowerDistributionPanel();
 
 public:
   Robot() :
@@ -388,7 +393,9 @@ private:
   }
 
   void ManualShooting() {
+#ifdef D_SHOOTING
     printf("Shooting manually\n");
+#endif
     leftTower.SetSpeed(TOWER_SPEED);
     rightTower.SetSpeed(-TOWER_SPEED);
     conveyor.SetSpeed(CONVEYOR_SPEED);
@@ -399,6 +406,12 @@ private:
   // Takes a speed [-1.0, 1.0] and scales to [0.0, 1.0]
   double ScaledShootingSpeed(double rawAxis) {
     return (rawAxis/2) + 0.5;
+  }
+
+  void Monitor() {
+	  SmartDashboard::PutNumber("Total current", pdp->GetTotalCurrent());
+	  SmartDashboard::PutNumber("Conveyor current", pdp->GetCurrent(pdpConveyor));
+	  SmartDashboard::PutNumber("Intake current", pdp->GetCurrent(pdpIntake));
   }
 
   void TeleopPeriodic() {
@@ -416,7 +429,9 @@ private:
     driveTrain.TankDrive(left, right);  //assign driving method & args
 
     if (op.GetRawButton(shootingModeSwitch)) {
+#ifdef D_SHOOTING
       printf("Manual shooting\n");
+#endif
       shootingSpeed = -ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
     } else {
     	shootingSpeed = SHOOTING_SPEED;
@@ -433,11 +448,20 @@ private:
     }
 
     if (op.GetRawButton(spinIntakeForwardButton)) {
-      intakeRoller.SetSpeed(ROLLER_SPEED);
+#ifdef D_INTAKE
+    	printf("Moving intake forward\n");
+#endif
+      intakeRoller.Set(ROLLER_SPEED);
     } else if (op.GetRawButton(spinIntakeBackwardButton)) {
-      intakeRoller.SetSpeed(-ROLLER_SPEED);
+#ifdef D_INTAKE
+    	printf("Moving intake backward\n");
+#endif
+      intakeRoller.Set(-ROLLER_SPEED);
     } else {
-      intakeRoller.SetSpeed(0);
+#ifdef D_INTAKE
+    	printf("Stopping intake\n");
+#endif
+      intakeRoller.Set(0);
     }
 
     if (op.GetRawButton(climberButton)) {
@@ -458,7 +482,9 @@ private:
     if (!op.GetRawButton(shootingModeSwitch)) {
       //Automatic mode
       if (op.GetRawButton(shootingButton)) {
+#ifdef D_SHOOTING
         printf("Shooting button pressed\n");
+#endif
         Shooting();
       } else {
         StopShooting();
@@ -466,28 +492,40 @@ private:
     } else {
       StopShooting();
       if (op.GetRawButton(shootingTowersConveyorButton)) {
+#ifdef D_SHOOTING
         printf("Manual shooting button pressed\n");
+#endif
         ManualShooting();
       }
       else {
         if (op.GetRawButton(conveyorIn)) {
+#ifdef D_CONVEYOR
           printf("Conveyor in pressed\n");
+#endif
           conveyor.SetSpeed(CONVEYOR_SPEED); //neg or pos
         } else if (op.GetRawButton(conveyorOut)) {
+#ifdef D_CONVEYOR
           printf("Conveyor out pressed\n");
+#endif
           conveyor.SetSpeed(-CONVEYOR_SPEED);
         } else {
+#ifdef D_CONVEYOR
           printf("Stopping conveyor\n");
+#endif
           conveyor.SetSpeed(0.0);
         }
 
         if (op.GetRawButton(shootingButton)){
+#ifdef D_SHOOTING
           printf("Just manual shooting\n");
           printf("Shooting speed: %lf\n", shootingSpeed);
+#endif
           leftShooter.SetSpeed(-shootingSpeed);
           rightShooter.SetSpeed(shootingSpeed);
         } else {
+#ifdef D_SHOOTING
           printf("Stopping manual shooting\n");
+#endif
           leftShooter.SetSpeed(0);
           rightShooter.SetSpeed(0);
         }
@@ -504,6 +542,8 @@ private:
         }
       }
     }
+
+    Monitor();
   }
 
   void TestPeriodic() {
