@@ -4,6 +4,7 @@
 #include <Timer.h>
 #include "SettablePIDOut.h"
 #include "RateCounter.h"
+#include "Logger.h"
 
 #define DEADZONE 0.1
 #define LEFT_TOLERANCE 0.1
@@ -19,10 +20,6 @@
 #define INTAKE_UP DoubleSolenoid::kForward
 #define SHIFTER_LOW DoubleSolenoid::kReverse
 #define SHIFTER_HIGH DoubleSolenoid::kForward
-
-#define D_SHOOTING
-//#define D_INTAKE
-//#define D_CONVEYOR
 
 //#define USE_PID_FOR_MANUAL_SHOOTING
 
@@ -61,6 +58,7 @@ class Robot: public IterativeRobot {
   double initialAngle = -1;
   double shootingSpeed = SHOOTING_SPEED;
   PowerDistributionPanel *pdp = new PowerDistributionPanel();
+  Logger *logger = new Logger();
 
 public:
   Robot() :
@@ -111,6 +109,10 @@ private:
     }
   }
 
+  void DisabledInit() {
+	  logger->CloseLog();
+  }
+
 #ifdef USE_PID_FOR_MANUAL_SHOOTING
   void Shoot() {
 	  if (!leftPID.IsEnabled()) {
@@ -135,6 +137,7 @@ private:
   void Shoot() {
 	  leftShooter.SetSpeed(shootingSpeed);
 	  rightShooter.SetSpeed(-shootingSpeed);
+	  logger->Log(logShooter, "Running shooter at %lf\n", shootingSpeed);
   }
 
 #endif
@@ -146,6 +149,7 @@ private:
 	  rightPID.Reset();
 	  leftShooter.SetSpeed(0);
 	  rightShooter.SetSpeed(0);
+	  logger->Log(logShooter, "Stopping shooter\n");
   }
 
 
@@ -391,9 +395,12 @@ private:
     initialAngle = -1;
 
     timer.Start();
+    logger->OpenNewLog("_auton");
+    logger->Log(logAuton, "Running auton %d\n", mode);
   }
 
   void AutonomousPeriodic() {
+	  logger->Log(logAuton, "Auton is in state %d\n", state);
     switch (mode) {
     case rightGearHighGoal:
       autoRightGearHighGoal();
@@ -412,22 +419,28 @@ private:
       break;
     default:
       std::cout << "you screwed up" << std::endl;
+      logger->Log(logAuton, "Ran invalid auton\n");
     }
   }
 
   void AutomaticShooting() {
+	  logger->Log(logShooter, "Automatic shooting\n");
     Shoot();
 
     conveyor.SetSpeed(CONVEYOR_SPEED);
     if (fabs(leftShooterEncoder.GetPeriod() - shootingSpeed) < LEFT_TOLERANCE) { //change to fit new encoders
       leftTower.SetSpeed(TOWER_SPEED);
+      logger->Log(logShooter, "Moving left tower\n");
     } else {
+    	logger->Log(logShooter, "Stopping left tower\n");
       leftTower.SetSpeed(0);
     }
 
     if (fabs(rightShooterEncoder.GetPeriod() - shootingSpeed) < RIGHT_TOLERANCE) { //change to fit new encoders
       rightTower.SetSpeed(-TOWER_SPEED);
+      logger->Log(logShooter, "Moving right tower\n");
     } else {
+    	logger->Log(logShooter, "Stopping right tower\n");
       rightTower.SetSpeed(0);
     }
   }
@@ -437,12 +450,11 @@ private:
     rightPID.SetSetpoint(shootingSpeed);
     leftPID.SetOutputRange(0, .6);
     rightPID.SetOutputRange(0, 0.6);
+    logger->OpenNewLog("_teleop");
   }
 
   void ManualShooting() {
-#ifdef D_SHOOTING
-    printf("Shooting manually\n");
-#endif
+    logger->Log(logShooter, "Shooting manually\n");
     leftTower.SetSpeed(TOWER_SPEED);
     rightTower.SetSpeed(-TOWER_SPEED);
     conveyor.SetSpeed(CONVEYOR_SPEED);
@@ -469,12 +481,10 @@ private:
   }
 
   void TeleopPeriodic() {
-//	  leftShooter.SetSpeed(-0.75);
-//	  rightShooter.SetSpeed(0.75);
-    // TODO: Check this axis
     double left = driveControl.GetRawAxis(XboxAxisLeftStickY);
     double right = driveControl.GetRawAxis(XboxAxisRightStickY);
 
+    logger->Log(logDriveTrain, "Read from joysticks (%lf, %lf)\n", left, right);
     if (fabs(left) < DEADZONE) {
       left = 0;
     }
@@ -483,11 +493,10 @@ private:
     }
 
     driveTrain.TankDrive(left, right);  //assign driving method & args
+    logger->Log(logDriveTrain, "Driving at (%lf, %lf)\n", left, right);
 
     if (op.GetRawButton(shootingModeSwitch)) {
-#ifdef D_SHOOTING
-      printf("Manual shooting\n");
-#endif
+      logger->Log(logShooter, "Manual shooting mode\n");
       shootingSpeed = -ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
     } else {
     	shootingSpeed = SHOOTING_SPEED;
@@ -496,103 +505,91 @@ private:
     double setpoint = -shootingSpeed * 16000;
     leftPID.SetSetpoint(setpoint);
     rightPID.SetSetpoint(setpoint);
+    logger->Log(logShooter, "Current pid setpoint: %lf\n", setpoint);
 
     if (op.GetRawButton(intakePositionSwitch)) {
       intake.Set(INTAKE_DOWN);
+      logger->Log(logIntake, "Moving intake down\n");
     }
     else {
+    	logger->Log(logIntake, "Moving intake up\n");
       intake.Set(INTAKE_UP);
     }
 
     if (op.GetRawButton(spinIntakeForwardButton)) {
-#ifdef D_INTAKE
-    	printf("Moving intake forward\n");
-#endif
+    	logger->Log(logIntake, "Spinning intake forward\n");
       intakeRoller.Set(rollerSpeed);
     } else if (op.GetRawButton(spinIntakeBackwardButton)) {
-#ifdef D_INTAKE
-    	printf("Moving intake backward\n");
-#endif
+    	logger->Log(logIntake, "Spinning intake backward\n");
       intakeRoller.Set(-rollerSpeed);
     } else {
-#ifdef D_INTAKE
-    	printf("Stopping intake\n");
-#endif
+    	logger->Log(logIntake, "Stopping intake\n");
       intakeRoller.Set(0);
     }
 
     if (op.GetRawButton(climberButton)) {
+    	logger->Log(logClimber, "Moving climber\n");
       climber.SetSpeed(CLIMBER_SPEED);
     }
     else {
+    	logger->Log(logClimber, "Stopping climber\n");
       climber.SetSpeed(0);
     }
 
 
     if (driveControl.GetRawAxis(shiftGearsAxis) > 0.5) {
       shifter.Set(SHIFTER_HIGH);
+      logger->Log(logShifter, "High gear\n");
     }
     else {
+    	logger->Log(logShifter, "Low gear\n");
       shifter.Set(SHIFTER_LOW);
     }
 
     if (!op.GetRawButton(shootingModeSwitch)) {
       //Automatic mode
       if (op.GetRawButton(shootingButton)) {
-#ifdef D_SHOOTING
-        printf("Shooting button pressed\n");
-#endif
+    	  logger->Log(logShooter, "Shooting button pressed\n");
         AutomaticShooting();
       } else {
         StopShooting();
       }
     } else {
       if (op.GetRawButton(shootingTowersConveyorButton)) {
-#ifdef D_SHOOTING
-        printf("Manual shooting button pressed\n");
-#endif
+        logger->Log(logShooter, "Manual shooting button pressed\n");
         ManualShooting();
       }
       else {
         if (op.GetRawButton(conveyorIn)) {
-#ifdef D_CONVEYOR
-          printf("Conveyor in pressed\n");
-#endif
+          logger->Log(logConveyor, "Conveyor in pressed\n");
           conveyor.SetSpeed(CONVEYOR_SPEED); //neg or pos
         } else if (op.GetRawButton(conveyorOut)) {
-#ifdef D_CONVEYOR
-          printf("Conveyor out pressed\n");
-#endif
+          logger->Log(logConveyor, "Conveyor out pressed\n");
           conveyor.SetSpeed(-CONVEYOR_SPEED);
         } else {
-#ifdef D_CONVEYOR
-          printf("Stopping conveyor\n");
-#endif
+          logger->Log(logConveyor, "Stopping conveyor\n");
           conveyor.SetSpeed(0.0);
         }
 
         if (op.GetRawButton(shootingButton)){
-#ifdef D_SHOOTING
-          printf("Just manual shooting\n");
-          printf("Shooting speed: %lf\n", shootingSpeed);
-#endif
+          logger->Log(logShooter, "Just manual shooting\n");
           Shoot();
         } else {
-#ifdef D_SHOOTING
-          printf("Stopping manual shooting\n");
-#endif
           StopShooting();
         }
 
         if (op.GetRawButton(towersInButton)) {
           leftTower.SetSpeed(TOWER_SPEED); //neg or pos
           rightTower.SetSpeed(-TOWER_SPEED);
+          logger->Log(logTower, "Moving towers up\n");
         } else if (op.GetRawButton(towersOutButton)) {
           leftTower.SetSpeed(-TOWER_SPEED);
           rightTower.SetSpeed(TOWER_SPEED);
+          logger->Log(logTower, "Moving towers down\n");
         } else {
           leftTower.SetSpeed(0.0);
           rightTower.SetSpeed(0.0);
+          logger->Log(logTower, "Stopping towers\n");
         }
       }
     }
