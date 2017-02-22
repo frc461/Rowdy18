@@ -1,9 +1,9 @@
 #include <WPILib.h>
 #include "Robot.h"
 #include "XboxJoystickMap.h"
-#include "RateEncoder.h"
 #include <Timer.h>
 #include "SettablePIDOut.h"
+#include "RateCounter.h"
 
 #define DEADZONE 0.1
 #define LEFT_TOLERANCE 0.1
@@ -43,8 +43,8 @@ class Robot: public IterativeRobot {
   Spark leftTower;
   Spark rightShooter;
   Spark rightTower;
-  RateEncoder leftShooterEncoder;      //sensor
-  RateEncoder rightShooterEncoder;
+  RateCounter leftShooterEncoder;      //sensor
+  RateCounter rightShooterEncoder;
   Encoder leftDriveEncoder;
   Encoder rightDriveEncoder;
   SettablePIDOut leftOut;
@@ -79,8 +79,8 @@ public:
     leftTower(leftTowerPWM),
     rightShooter(rightShooterPWM),
     rightTower(rightTowerPWM),
-    leftShooterEncoder(leftShooterEncoderA, leftShooterEncoderB),
-    rightShooterEncoder(rightShooterEncoderA, rightShooterEncoderB),
+    leftShooterEncoder(leftShooterEncoderA),
+    rightShooterEncoder(rightShooterEncoderA),
 	leftDriveEncoder(leftDriveEncoderA, leftDriveEncoderB),
 	rightDriveEncoder(rightDriveEncoderA, rightDriveEncoderB),
 	leftOut(),
@@ -419,13 +419,13 @@ private:
     Shoot();
 
     conveyor.SetSpeed(CONVEYOR_SPEED);
-    if (fabs(leftShooterEncoder.GetRate() - shootingSpeed) < LEFT_TOLERANCE) {
+    if (fabs(leftShooterEncoder.GetPeriod() - shootingSpeed) < LEFT_TOLERANCE) { //change to fit new encoders
       leftTower.SetSpeed(TOWER_SPEED);
     } else {
       leftTower.SetSpeed(0);
     }
 
-    if (fabs(rightShooterEncoder.GetRate() - shootingSpeed) < RIGHT_TOLERANCE) {
+    if (fabs(rightShooterEncoder.GetPeriod() - shootingSpeed) < RIGHT_TOLERANCE) { //change to fit new encoders
       rightTower.SetSpeed(-TOWER_SPEED);
     } else {
       rightTower.SetSpeed(0);
@@ -493,8 +493,9 @@ private:
     	shootingSpeed = SHOOTING_SPEED;
     }
 
-    leftPID.SetSetpoint(-shootingSpeed * 16000);
-    rightPID.SetSetpoint(-shootingSpeed * 16000);
+    double setpoint = -shootingSpeed * 16000;
+    leftPID.SetSetpoint(setpoint);
+    rightPID.SetSetpoint(setpoint);
 
     if (op.GetRawButton(intakePositionSwitch)) {
       intake.Set(INTAKE_DOWN);

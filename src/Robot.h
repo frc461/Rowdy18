@@ -105,8 +105,8 @@ enum DIO {	//digital input/output
 	leftDriveEncoderB = 0,
 	rightDriveEncoderA = 2,
 	rightDriveEncoderB = 3,
-	leftShooterEncoderA = 5,
-	leftShooterEncoderB = 4,
+	leftShooterEncoderA = 4,
+	leftShooterEncoderB = 5,
 	rightShooterEncoderA = 6,
 	rightShooterEncoderB = 7
 };
