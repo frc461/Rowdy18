@@ -22,7 +22,6 @@
 #define SHIFTER_HIGH DoubleSolenoid::kForward
 
 #define MAX_RPM -6000
-
 //#define USE_PID_FOR_MANUAL_SHOOTING
 
 class Robot: public IterativeRobot {
@@ -116,7 +115,7 @@ private:
 	    climbChooser->AddDefault("Forward", false);
 	    climbChooser->AddObject("Backward", true);
 	    SmartDashboard::PutData("Drive Control", driveChooser);
-	    SmartDashboard::PutData("Climber Direction", climbChooser)
+	    SmartDashboard::PutData("Climber Direction", climbChooser);
   }
 
   void backUpMod(double seconds) {
