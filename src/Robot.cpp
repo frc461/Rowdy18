@@ -129,10 +129,10 @@ private:
 
   void DriveStraight(double speed) {
 	  if (driveAngle == -1) {
-		  driveAngle = gyro.GetAngle() % 360;
+		  driveAngle = fmod(gyro.GetAngle(), 360);
 	  }
 
-	  double currentAngle = gyro.GetAngle() % 360;
+	  double currentAngle = fmod(gyro.GetAngle(), 360);
 	  if (currentAngle > 180) {
 		  currentAngle -= 360;
 	  }
