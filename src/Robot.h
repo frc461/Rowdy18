@@ -73,8 +73,8 @@ enum PCM {
 };
 
 enum OperatorControls {
-	spinIntakeForwardButton = 12,
-	spinIntakeBackwardButton = 11,
+	spinIntakeForwardButton = 11,
+	spinIntakeBackwardButton = 12,
 	climberButton = 2,
 	towersInButton = 7,
 	towersOutButton = 8,
