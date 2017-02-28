@@ -21,6 +21,8 @@
 #define SHIFTER_LOW DoubleSolenoid::kReverse
 #define SHIFTER_HIGH DoubleSolenoid::kForward
 
+#define MAX_RPM -6000
+
 //#define USE_PID_FOR_MANUAL_SHOOTING
 
 class Robot: public IterativeRobot {
@@ -446,10 +448,10 @@ private:
   }
 
   void TeleopInit() {
-    leftPID.SetSetpoint(shootingSpeed);
-    rightPID.SetSetpoint(shootingSpeed);
-    leftPID.SetOutputRange(0, .6);
-    rightPID.SetOutputRange(0, 0.6);
+    leftPID.SetSetpoint(shootingSpeed * MAX_RPM);
+    rightPID.SetSetpoint(shootingSpeed * MAX_RPM);
+//    leftPID.SetOutputRange(0, .6);
+//    rightPID.SetOutputRange(0, 0.6);
     logger->OpenNewLog("_teleop");
   }
 
@@ -477,7 +479,7 @@ private:
 	  SmartDashboard::PutNumber("Left Shooter Encoder", leftShooterEncoder.PIDGet());
 	  SmartDashboard::PutNumber("Right Shooter Encoder", rightShooterEncoder.PIDGet());
 
-	  SmartDashboard::PutNumber("Shooting setpoint", shootingSpeed * -6000);
+	  SmartDashboard::PutNumber("Shooting setpoint", shootingSpeed * MAX_RPM);
   }
 
   void TeleopPeriodic() {
@@ -502,7 +504,7 @@ private:
     	shootingSpeed = SHOOTING_SPEED;
     }
 
-    double setpoint = -shootingSpeed * 16000;
+    double setpoint = shootingSpeed * MAX_RPM;
     leftPID.SetSetpoint(setpoint);
     rightPID.SetSetpoint(setpoint);
     logger->Log(logShooter, "Current pid setpoint: %lf\n", setpoint);
