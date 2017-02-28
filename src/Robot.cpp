@@ -22,7 +22,6 @@
 #define SHIFTER_HIGH DoubleSolenoid::kForward
 
 #define MAX_RPM -6000
-
 //#define USE_PID_FOR_MANUAL_SHOOTING
 
 class Robot: public IterativeRobot {
