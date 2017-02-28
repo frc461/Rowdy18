@@ -67,6 +67,7 @@ class Robot: public IterativeRobot {
   Joystick rightJoystick;
   bool useXboxControllerForDriving = true;
   SendableChooser<bool> *driveChooser = new SendableChooser<bool>();
+  double driveAngle = -1;
 
 public:
   Robot() :
@@ -125,6 +126,24 @@ private:
       timer.Reset();
       state++;
     }
+  }
+
+  void DriveStraight(double speed) {
+	  if (driveAngle == -1) {
+		  driveAngle = gyro.GetAngle() % 360;
+	  }
+
+	  double currentAngle = gyro.GetAngle() % 360;
+	  if (currentAngle > 180) {
+		  currentAngle -= 360;
+	  }
+
+	  double error = currentAngle - driveAngle;
+	  double correction = (error / 180) / 2;
+
+	  driveTrain.TankDrive(speed + correction, speed - correction);
+
+	  logger->Log(logDriveTrain, "Current angle %lf, target angle: %lf, correction: %lf\n", currentAngle, driveAngle, correction);
   }
 
   void DisabledInit() {
@@ -502,12 +521,14 @@ private:
 
   void TeleopPeriodic() {
 	double left, right;
+	bool driveStraight;
 	if (useXboxControllerForDriving) {
 	  left = driveControl.GetRawAxis(XboxAxisLeftStickY);
       right = driveControl.GetRawAxis(XboxAxisRightStickY);
 	} else {
 		left = leftJoystick.GetRawAxis(1);
 		right = rightJoystick.GetRawAxis(1);
+		driveStraight = leftJoystick.GetRawButton(driveStraightButtonLeftJoystick);
 	}
     logger->Log(logDriveTrain, "Read from joysticks (%lf, %lf)\n", left, right);
     if (fabs(left) < DEADZONE) {
@@ -517,7 +538,12 @@ private:
       right = 0;
     }
 
-    driveTrain.TankDrive(left, right);  //assign driving method & args
+    if (driveStraight) {
+    	DriveStraight(left > right ? left : right);
+    } else {
+    	driveTrain.TankDrive(left, right);  //assign driving method & args
+    	driveAngle = -1;
+    }
     logger->Log(logDriveTrain, "Driving at (%lf, %lf)\n", left, right);
 
     if (op.GetRawButton(shootingModeSwitch)) {

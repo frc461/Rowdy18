@@ -104,6 +104,10 @@ enum DriverControlsRightJoystick {
 	shiftGearsButtonRightJoystick = 1,
 };
 
+enum DriverControlsLeftJoystick {
+	driveStraightButtonLeftJoystick = 1,
+};
+
 enum DIO {	//digital input/output
 	leftDriveEncoderA = 1,
 	leftDriveEncoderB = 0,
