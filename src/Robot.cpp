@@ -37,6 +37,8 @@ class Robot: public IterativeRobot {
   Spark intakeRoller;   //motor controller
   DoubleSolenoid intake;        //pneumatic controller
   Spark climber;
+  bool useClimberBackwards = false;
+  SendableChooser<bool> *climbChooser = new SendableChooser<bool>();
   DoubleSolenoid shifter;
   Spark leftShooter;
   Spark leftTower;
@@ -100,6 +102,9 @@ private:
   void RobotInit() {
 	    prefs = Preferences::GetInstance();
 	    rollerSpeed = prefs->GetDouble("rollerSpeed", 0.9);
+	    climbChooser->AddDefault("Forward", false);
+	    climbChooser->AddObject("Backward", true);
+	    SmartDashboard::PutData("Climber Direction", climbChooser)
   }
 
   void backUpMod(double seconds) {
@@ -453,6 +458,7 @@ private:
 //    leftPID.SetOutputRange(0, .6);
 //    rightPID.SetOutputRange(0, 0.6);
     logger->OpenNewLog("_teleop");
+    useClimberBackwards = climbChooser->GetSelected();
   }
 
   void ManualShooting() {
@@ -531,7 +537,11 @@ private:
 
     if (op.GetRawButton(climberButton)) {
     	logger->Log(logClimber, "Moving climber\n");
-      climber.SetSpeed(CLIMBER_SPEED);
+    	if(useClimberBackwards){
+    		climber.SetSpeed(-CLIMBER_SPEED);
+    	} else {
+    		climber.SetSpeed(CLIMBER_SPEED);
+    	}
     }
     else {
     	logger->Log(logClimber, "Stopping climber\n");
