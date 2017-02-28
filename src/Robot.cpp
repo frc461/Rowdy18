@@ -63,6 +63,10 @@ class Robot: public IterativeRobot {
   double shootingSpeed = SHOOTING_SPEED;
   PowerDistributionPanel *pdp = new PowerDistributionPanel();
   Logger *logger = new Logger();
+  Joystick leftJoystick;
+  Joystick rightJoystick;
+  bool useXboxControllerForDriving = true;
+  SendableChooser<bool> *driveChooser = new SendableChooser<bool>();
 
 public:
   Robot() :
@@ -92,7 +96,11 @@ public:
     timer(),
     conveyor(conveyorPWM),
 	currentSensor(3),
-	prefs(){
+	prefs(),
+	leftJoystick(4),
+	rightJoystick(5)
+
+  {
     SmartDashboard::init();
     //b = DriverStationLCD::GetInstance();
   }
@@ -102,8 +110,11 @@ private:
   void RobotInit() {
 	    prefs = Preferences::GetInstance();
 	    rollerSpeed = prefs->GetDouble("rollerSpeed", 0.9);
+	    driveChooser->AddDefault("Xbox controller", true);
+	    driveChooser->AddObject("Joysticks", false);
 	    climbChooser->AddDefault("Forward", false);
 	    climbChooser->AddObject("Backward", true);
+	    SmartDashboard::PutData("Drive Control", driveChooser);
 	    SmartDashboard::PutData("Climber Direction", climbChooser)
   }
 
@@ -458,6 +469,7 @@ private:
 //    leftPID.SetOutputRange(0, .6);
 //    rightPID.SetOutputRange(0, 0.6);
     logger->OpenNewLog("_teleop");
+    useXboxControllerForDriving = driveChooser->GetSelected();
     useClimberBackwards = climbChooser->GetSelected();
   }
 
@@ -489,9 +501,14 @@ private:
   }
 
   void TeleopPeriodic() {
-    double left = driveControl.GetRawAxis(XboxAxisLeftStickY);
-    double right = driveControl.GetRawAxis(XboxAxisRightStickY);
-
+	double left, right;
+	if (useXboxControllerForDriving) {
+	  left = driveControl.GetRawAxis(XboxAxisLeftStickY);
+      right = driveControl.GetRawAxis(XboxAxisRightStickY);
+	} else {
+		left = leftJoystick.GetRawAxis(1);
+		right = rightJoystick.GetRawAxis(1);
+	}
     logger->Log(logDriveTrain, "Read from joysticks (%lf, %lf)\n", left, right);
     if (fabs(left) < DEADZONE) {
       left = 0;
@@ -548,14 +565,23 @@ private:
       climber.SetSpeed(0);
     }
 
-
-    if (driveControl.GetRawAxis(shiftGearsAxis) > 0.5) {
-      shifter.Set(SHIFTER_HIGH);
-      logger->Log(logShifter, "High gear\n");
-    }
-    else {
-    	logger->Log(logShifter, "Low gear\n");
-      shifter.Set(SHIFTER_LOW);
+    if (useXboxControllerForDriving) {
+		if (driveControl.GetRawAxis(shiftGearsAxisXbox) > 0.5) {
+		  shifter.Set(SHIFTER_HIGH);
+		  logger->Log(logShifter, "High gear\n");
+		}
+		else {
+			logger->Log(logShifter, "Low gear\n");
+		  shifter.Set(SHIFTER_LOW);
+		}
+    } else {
+    	if (rightJoystick.GetRawAxis(shiftGearsButtonRightJoystick)) {
+    		shifter.Set(SHIFTER_HIGH);
+    		logger->Log(logShifter, "High gear\n");
+    	} else {
+    		logger->Log(logShifter, "Low gear\n");
+    		shifter.Set(SHIFTER_LOW);
+    	}
     }
 
     if (!op.GetRawButton(shootingModeSwitch)) {

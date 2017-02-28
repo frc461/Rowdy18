@@ -96,8 +96,12 @@ enum HatControls {
 };
 */
 
-enum DriverControls {
-	shiftGearsAxis = 3
+enum DriverControlsXbox {
+	shiftGearsAxisXbox = 3
+};
+
+enum DriverControlsRightJoystick {
+	shiftGearsButtonRightJoystick = 1,
 };
 
 enum DIO {	//digital input/output
