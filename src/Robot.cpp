@@ -7,8 +7,8 @@
 #include "Logger.h"
 
 #define DEADZONE 0.1
-#define LEFT_TOLERANCE 0.1
-#define RIGHT_TOLERANCE 0.1
+#define LEFT_TOLERANCE 10
+#define RIGHT_TOLERANCE 10
 
 #define TOWER_SPEED -0.9
 #define SHOOTING_SPEED 0.8
@@ -616,6 +616,9 @@ private:
         AutomaticShooting();
       } else {
         StopShooting();
+        conveyor.SetSpeed(0);
+        leftTower.SetSpeed(0);
+        rightTower.SetSpeed(0);
       }
     } else {
       if (op.GetRawButton(shootingTowersConveyorButton)) {
