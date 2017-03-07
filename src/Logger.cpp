@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sys/time.h>
 
 #define DATETIME_FORMAT "%m-%d-%Y_%I:%M:%S"
 
@@ -38,6 +39,8 @@ void Logger::OpenNewLog(const char *suffix, const char *extension) {
 	sprintf(logFileName, "%s%s%s%s", path, timeBuf, suffix, extension);
 	printf("Writing to log file: %s\n", logFileName);
 	currentLogFile = fopen(logFileName, "w");
+	fprintf(currentLogFile, "%s\n", logFileName);
+	gettimeofday(&openTime, 0);
 }
 
 void Logger::Log(LOG_TYPE logType, const char* s, ...) {
@@ -46,6 +49,23 @@ void Logger::Log(LOG_TYPE logType, const char* s, ...) {
 	fprintf(currentLogFile, "%s> ", LOG_PREFIXES[logType]);
 	vfprintf(currentLogFile, s, args);
 	va_end(args);
+}
+
+void Logger::LogPID(LOG_TYPE logType, BetterPIDController* pid) {
+	this->Log(logType, "P: %lf, I: %'lf, D: %lf, Input: %lf, Setpoint: %lf, Error: %lf, Output: %lf\n",
+			pid->GetP(),
+			pid->GetI(),
+			pid->GetD(),
+			pid->GetInput(),
+			pid->GetSetpoint(),
+			pid->GetError(),
+			pid->Get());
+}
+
+void Logger::LogRunTime() {
+	timeval tv;
+	gettimeofday(&tv, 0);
+	fprintf(currentLogFile, "%ld.%ld\n", tv.tv_sec - openTime.tv_sec, tv.tv_usec - openTime.tv_usec);
 }
 
 void Logger::CloseLog() {

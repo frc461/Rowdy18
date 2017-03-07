@@ -11,9 +11,13 @@
 
 class RateCounter: public frc::Counter, public frc::PIDSource {
 public:
-	RateCounter(int channel);
+	RateCounter(int channel, double adjustmentFactor = 1);
 	virtual ~RateCounter();
 	double PIDGet();
+	double GetRPM();
+
+private:
+	double m_adjustmentFactor;
 };
 
 #endif /* SRC_RATECOUNTER_H_ */
