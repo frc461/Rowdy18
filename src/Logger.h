@@ -17,18 +17,16 @@
 
 class Logger {
 public:
-	Logger();
-	void OpenNewLog(const char *suffix = "", const char *extension = ".txt");
-	void CloseLog();
-	void Log(LOG_TYPE logType, const char* s, ...);
-	void LogPID(LOG_TYPE logtype, BetterPIDController *pid);
-	void LogRunTime();
-	virtual ~Logger();
+	static void OpenNewLog(const char *suffix = "", const char *extension = ".txt");
+	static void CloseLog();
+	static void Log(LOG_TYPE logType, const char* s, ...);
+	static void LogPID(LOG_TYPE logtype, BetterPIDController *pid);
+	static void LogRunTime();
 
 private:
-	void GetCurrentDateTime(char *buf, int size);
-	FILE *currentLogFile;
-	timeval openTime;
+	static void GetCurrentDateTime(char *buf, int size);
+	static FILE *currentLogFile;
+	static timeval openTime;
 };
 
 #endif /* SRC_LOGGER_H_ */

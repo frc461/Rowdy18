@@ -13,10 +13,8 @@
 
 #define DATETIME_FORMAT "%m-%d-%Y_%I:%M:%S"
 
-Logger::Logger() {
-	// TODO Auto-generated constructor stub
-	currentLogFile = NULL;
-}
+FILE *Logger::currentLogFile = NULL;
+timeval Logger::openTime;
 
 void Logger::GetCurrentDateTime(char *buffer, int size) {
 	time_t rawtime;
@@ -38,7 +36,7 @@ void Logger::OpenNewLog(const char *suffix, const char *extension) {
 	char logFileName[strlen(path) + strlen(timeBuf) + strlen(suffix) + strlen(extension) + 1];
 	sprintf(logFileName, "%s%s%s%s", path, timeBuf, suffix, extension);
 	printf("Writing to log file: %s\n", logFileName);
-	currentLogFile = fopen(logFileName, "w");
+	Logger::currentLogFile = fopen(logFileName, "w");
 	fprintf(currentLogFile, "%s\n", logFileName);
 	gettimeofday(&openTime, 0);
 }
@@ -52,7 +50,7 @@ void Logger::Log(LOG_TYPE logType, const char* s, ...) {
 }
 
 void Logger::LogPID(LOG_TYPE logType, BetterPIDController* pid) {
-	this->Log(logType, "P: %lf, I: %'lf, D: %lf, Input: %lf, Setpoint: %lf, Error: %lf, Output: %lf\n",
+	Log(logType, "P: %lf, I: %'lf, D: %lf, Input: %lf, Setpoint: %lf, Error: %lf, Output: %lf\n",
 			pid->GetP(),
 			pid->GetI(),
 			pid->GetD(),
@@ -74,9 +72,3 @@ void Logger::CloseLog() {
 		currentLogFile = NULL;
 	}
 }
-
-Logger::~Logger() {
-	// TODO Auto-generated destructor stub
-	CloseLog();
-}
-
