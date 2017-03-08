@@ -7,38 +7,21 @@
 #include "Logger.h"
 
 #include "Shooter.h"
-
-#define DEADZONE 0.1
+#include "DriveTrain.h"
 
 #define ROLLER_SPEED 0.9
 #define CLIMBER_SPEED -1
 
 #define INTAKE_DOWN DoubleSolenoid::kReverse
 #define INTAKE_UP DoubleSolenoid::kForward
-#define SHIFTER_LOW DoubleSolenoid::kReverse
-#define SHIFTER_HIGH DoubleSolenoid::kForward
-
-#define MAX_RPM 6000
-
 #define USE_GYRO_DRIVE_CORRECTION
-
-#define DRIVE_DISTANCE_INCHES(x) x * 28.647
-#define DRIVE_FORWARD_SPEED(x) -x
-#define DRIVE_BACKWARD_SPEED(x) x
 
 #define USE_CLIMBER_SWITCH
 
 //Gyro, left is positive, right is negative
 
 class Robot: public IterativeRobot {
-
-  Joystick driveControl;
   Joystick op;
-  Victor frontLeft;     //motor controller
-  Victor frontRight;
-  Victor backLeft;
-  Victor backRight;
-  RobotDrive driveTrain;        //handles driving methods
   Spark intakeRoller;   //motor controller
   DoubleSolenoid intake;        //pneumatic controller
   Spark climber;
@@ -46,10 +29,6 @@ class Robot: public IterativeRobot {
   bool useClimberBackwards = false;
   SendableChooser<bool> *climbChooser = new SendableChooser<bool>();
 #endif
-  DoubleSolenoid shifter;
-  Encoder leftDriveEncoder;
-  Encoder rightDriveEncoder;
-  ADXRS450_Gyro gyro;
   Timer timer;
   AnalogInput currentSensor;
   Preferences *prefs;
@@ -58,37 +37,25 @@ class Robot: public IterativeRobot {
   double initialAngle = -1;
   PowerDistributionPanel *pdp = new PowerDistributionPanel();
   Logger *logger = new Logger();
-  Joystick leftJoystick;
-  Joystick rightJoystick;
-  bool useXboxControllerForDriving = true;
-  SendableChooser<bool> *driveChooser = new SendableChooser<bool>();
   double driveAngle = -1;
   int gRPulseInit;
   double gRAngleInit;
+
+  DriverControls *driverControls = new DriverControls(0);
+  DriveTrain *driveTrain = new DriveTrain(driverControls);
+
   OperatorControls *operatorControls = new OperatorControls(1);
   Shooter *shooter = new Shooter(operatorControls);
 
 public:
   Robot() :
-    driveControl(0),
     op(1),
-    frontLeft(frontLeftPWM),
-    frontRight(frontRightPWM),
-    backLeft(backLeftPWM),
-    backRight(backRightPWM),
-    driveTrain(frontLeft, backLeft, frontRight, backRight),
     intakeRoller(intakeRollerPWM),
     intake(intakeForwardPCM, intakeReversePCM),
     climber(climberPWM),
-    shifter(shifterForwardPCM, shifterReversePCM),   //change gears
-    leftDriveEncoder(leftDriveEncoderA, leftDriveEncoderB),
-    rightDriveEncoder(rightDriveEncoderA, rightDriveEncoderB),
-    gyro(SPI::kOnboardCS0),
     timer(),
     currentSensor(3),
-    prefs(),
-    leftJoystick(4),
-    rightJoystick(5)
+    prefs()
 
   {
     SmartDashboard::init();
@@ -100,8 +67,6 @@ private:
   void RobotInit() {
 	    prefs = Preferences::GetInstance();
 	    rollerSpeed = prefs->GetDouble("rollerSpeed", 0.9);
-	    driveChooser->AddDefault("Xbox controller", true);
-	    driveChooser->AddObject("Joysticks", false);
 
 #ifndef USE_CLIMBER_SWITCH
 	    climbChooser->AddDefault("Forward", false);
@@ -109,13 +74,12 @@ private:
 	    SmartDashboard::PutData("Climber Direction", climbChooser);
 #endif
 
-	    SmartDashboard::PutData("Drive Control", driveChooser);
-
             CameraServer::GetInstance()->StartAutomaticCapture(0);
             
             driveAngle = -1;
   }
 
+  /*
   void backUpMod(double seconds) {
     driveTrain.TankDrive(-1, -1, false);
     if (timer.Get() > seconds) {
@@ -123,8 +87,9 @@ private:
       timer.Reset();
       state++;
     }
-  }
+  } */
 
+  /*
   void DriveStraight(double speed) {
 	  double correction;
 	  double currentAngle = 0;
@@ -826,6 +791,7 @@ private:
 //      StopShooting();
     }
   }
+  */
 
   void AutonomousInit() {
     state = 0;
@@ -837,43 +803,43 @@ private:
   }
 
   void AutonomousPeriodic() {
-	  logger->LogRunTime();
-	  logger->Log(logAuton, "Auton is in state %d\n", state);
-    switch (mode) {
-    case rightGearHighGoal:
-      autoRightGearHighGoal();
-      break;
-    case rightGearHighGoalReload:
-      autoRightGearHighGoalReload();
-      break;
-    case centerGear:
-      autoCenterGear();
-      break;
-    case leftGearReload:
-      autoLeftGearReload();
-      break;
-    case lGRHopperRed:
-	  autoLGRHopperRed();
-	  break;
-    case lGRHopperBlue:
-      autoLGRHopperBlue();
-      break;
-    case rightGearReload:
-      autoRightGearReload();
-      break;
-    case rGRHopperRed:
-      autoRGRHopperRed();
-      break;
-    case rGRHopperBlue:
-      autoRGRHopperBlue();
-      break;
-    case highGoalReload:
-      autoHighGoalReload();
-      break;
-    default:
-      std::cout << "you screwed up" << std::endl;
-      logger->Log(logAuton, "Ran invalid auton\n");
-    }
+//	  logger->LogRunTime();
+//	  logger->Log(logAuton, "Auton is in state %d\n", state);
+//    switch (mode) {
+//    case rightGearHighGoal:
+//      autoRightGearHighGoal();
+//      break;
+//    case rightGearHighGoalReload:
+//      autoRightGearHighGoalReload();
+//      break;
+//    case centerGear:
+//      autoCenterGear();
+//      break;
+//    case leftGearReload:
+//      autoLeftGearReload();
+//      break;
+//    case lGRHopperRed:
+//	  autoLGRHopperRed();
+//	  break;
+//    case lGRHopperBlue:
+//      autoLGRHopperBlue();
+//      break;
+//    case rightGearReload:
+//      autoRightGearReload();
+//      break;
+//    case rGRHopperRed:
+//      autoRGRHopperRed();
+//      break;
+//    case rGRHopperBlue:
+//      autoRGRHopperBlue();
+//      break;
+//    case highGoalReload:
+//      autoHighGoalReload();
+//      break;
+//    default:
+//      std::cout << "you screwed up" << std::endl;
+//      logger->Log(logAuton, "Ran invalid auton\n");
+//    }
   }
 
   void TeleopInit() {
@@ -881,7 +847,6 @@ private:
 //    leftPID.SetOutputRange(0, .6);
 //    rightPID.SetOutputRange(0, 0.6);
     logger->OpenNewLog("_teleop");
-    useXboxControllerForDriving = driveChooser->GetSelected();
 #ifndef USE_CLIMBER_SWITCH
     useClimberBackwards = climbChooser->GetSelected();
 #endif
@@ -892,44 +857,10 @@ private:
 	  SmartDashboard::PutNumber("Conveyor current", pdp->GetCurrent(pdpConveyor));
 	  SmartDashboard::PutNumber("Intake current", pdp->GetCurrent(pdpIntake));
 	  SmartDashboard::PutNumber("Intake current analog", (currentSensor.GetAverageVoltage() - 0.6) / 0.04);
-
-	  SmartDashboard::PutNumber("Left Drive Encoder", leftDriveEncoder.Get());
-	  SmartDashboard::PutNumber("Right Drive Encoder", rightDriveEncoder.Get());
-
-	  SmartDashboard::PutNumber("Left Drive Encoder", leftDriveEncoder.Get());
-	  SmartDashboard::PutNumber("Right Drive Encoder", rightDriveEncoder.Get());
-
-	  SmartDashboard::PutNumber("Gyro", gyro.GetAngle());
   }
 
   void TeleopPeriodic() {
 	  logger->LogRunTime();
-	double left, right;
-	bool driveStraight;
-	if (useXboxControllerForDriving) {
-	  left = driveControl.GetRawAxis(XboxAxisLeftStickY);
-      right = driveControl.GetRawAxis(XboxAxisRightStickY);
-	} else {
-		left = leftJoystick.GetRawAxis(1);
-		right = rightJoystick.GetRawAxis(1);
-		driveStraight = leftJoystick.GetRawButton(driveStraightButtonLeftJoystick);
-	}
-    logger->Log(logDriveTrain, "Read from joysticks (%lf, %lf)\n", left, right);
-    if (fabs(left) < DEADZONE) {
-      left = 0;
-    }
-    if (fabs(right) < DEADZONE) {
-      right = 0;
-    }
-
-    if (driveStraight) {
-    	DriveStraight(left > right ? left : right);
-    } else {
-    	driveTrain.TankDrive(left, right);  //assign driving method & args
-    	driveAngle = -1;
-    }
-    logger->Log(logDriveTrain, "Driving at (%lf, %lf)\n", left, right);
-
     if (op.GetRawButton(intakePositionSwitch)) {
       intake.Set(INTAKE_DOWN);
       logger->Log(logIntake, "Moving intake down\n");
@@ -963,25 +894,7 @@ private:
       climber.SetSpeed(0);
     }
 
-    if (useXboxControllerForDriving) {
-		if (driveControl.GetRawAxis(shiftGearsAxisXbox) > 0.5) {
-		  shifter.Set(SHIFTER_HIGH);
-		  logger->Log(logShifter, "High gear\n");
-		}
-		else {
-			logger->Log(logShifter, "Low gear\n");
-		  shifter.Set(SHIFTER_LOW);
-		}
-    } else {
-    	if (rightJoystick.GetRawAxis(shiftGearsButtonRightJoystick)) {
-    		shifter.Set(SHIFTER_HIGH);
-    		logger->Log(logShifter, "High gear\n");
-    	} else {
-    		logger->Log(logShifter, "Low gear\n");
-    		shifter.Set(SHIFTER_LOW);
-    	}
-    }
-
+    driveTrain->Execute();
     shooter->Execute();
 
     Monitor();

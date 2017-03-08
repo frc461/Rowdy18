@@ -1,0 +1,38 @@
+/*
+ * DriverControls.cpp
+ *
+ *  Created on: Mar 8, 2017
+ *      Author: WBI
+ */
+
+#include "DriverControls.h"
+#include "XboxJoystickMap.h"
+#include "Ports.h"
+
+#define DRIVE_DEADZONE 0.1
+
+DriverControls::DriverControls(int channel) {
+  joystick = new Joystick(channel);
+}
+
+double DriverControls::GetLeft() {
+  double val = joystick->GetRawAxis(XboxAxisLeftStickY);
+  return fabs(val) > DRIVE_DEADZONE ? val : 0;
+}
+
+double DriverControls::GetRight() {
+  double val = joystick->GetRawAxis(XboxAxisRightStickY);
+  return fabs(val) > DRIVE_DEADZONE ? val : 0;
+}
+
+ShifterGear DriverControls::GetGear() {
+  if (joystick->GetRawAxis(shiftGearsAxisXbox) > 0.5)
+    return ShifterGear::kHighGear;
+  else
+    return ShifterGear::kLowGear;
+}
+
+DriverControls::~DriverControls() {
+  // TODO Auto-generated destructor stub
+}
+
