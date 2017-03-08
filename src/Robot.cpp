@@ -6,13 +6,10 @@
 #include "RateCounter.h"
 #include "Logger.h"
 
-#define DEADZONE 0.1
-#define LEFT_TOLERANCE 10
-#define RIGHT_TOLERANCE 10
+#include "Shooter.h"
 
-#define TOWER_SPEED -0.70
-#define SHOOTING_SPEED 0.8
-#define CONVEYOR_SPEED 0.9
+#define DEADZONE 0.1
+
 #define ROLLER_SPEED 0.9
 #define CLIMBER_SPEED -1
 
@@ -50,38 +47,26 @@ class Robot: public IterativeRobot {
   SendableChooser<bool> *climbChooser = new SendableChooser<bool>();
 #endif
   DoubleSolenoid shifter;
-  Spark leftShooter;
-  Spark leftTower;
-  Spark rightShooter;
-  Spark rightTower;
-  RateCounter leftShooterEncoder;      //sensor
-  RateCounter rightShooterEncoder;
   Encoder leftDriveEncoder;
   Encoder rightDriveEncoder;
-  SettablePIDOut leftOut;
-  SettablePIDOut rightOut;
-  BetterPIDController leftPID;        //error adjustor
-  BetterPIDController rightPID;
   ADXRS450_Gyro gyro;
   Timer timer;
-  Spark conveyor;
   AnalogInput currentSensor;
   Preferences *prefs;
   int mode = centerGear;
   int state = 0;
   double initialAngle = -1;
-  double shootingSpeed = SHOOTING_SPEED;
   PowerDistributionPanel *pdp = new PowerDistributionPanel();
   Logger *logger = new Logger();
   Joystick leftJoystick;
   Joystick rightJoystick;
   bool useXboxControllerForDriving = true;
   SendableChooser<bool> *driveChooser = new SendableChooser<bool>();
-  SendableChooser<bool> *shooterPIDChooser = new SendableChooser<bool>();
   double driveAngle = -1;
   int gRPulseInit;
   double gRAngleInit;
-  bool usePIDForManualShooting = true;
+  OperatorControls *operatorControls = new OperatorControls(1);
+  Shooter *shooter = new Shooter(operatorControls);
 
 public:
   Robot() :
@@ -96,25 +81,14 @@ public:
     intake(intakeForwardPCM, intakeReversePCM),
     climber(climberPWM),
     shifter(shifterForwardPCM, shifterReversePCM),   //change gears
-    leftShooter(leftShooterPWM),
-    leftTower(leftTowerPWM),
-    rightShooter(rightShooterPWM),
-    rightTower(rightTowerPWM),
-    leftShooterEncoder(leftShooterEncoderA),
-    rightShooterEncoder(rightShooterEncoderA),
-	leftDriveEncoder(leftDriveEncoderA, leftDriveEncoderB),
-	rightDriveEncoder(rightDriveEncoderA, rightDriveEncoderB),
-	leftOut(),
-	rightOut(),
-    leftPID(0, 0.00001, 0, &leftShooterEncoder, &leftOut,0.05),
-    rightPID(0, 0.00001, 0, &rightShooterEncoder, &rightOut,0.05),
-	gyro(SPI::kOnboardCS0),
+    leftDriveEncoder(leftDriveEncoderA, leftDriveEncoderB),
+    rightDriveEncoder(rightDriveEncoderA, rightDriveEncoderB),
+    gyro(SPI::kOnboardCS0),
     timer(),
-    conveyor(conveyorPWM),
-	currentSensor(3),
-	prefs(),
-	leftJoystick(4),
-	rightJoystick(5)
+    currentSensor(3),
+    prefs(),
+    leftJoystick(4),
+    rightJoystick(5)
 
   {
     SmartDashboard::init();
@@ -135,15 +109,11 @@ private:
 	    SmartDashboard::PutData("Climber Direction", climbChooser);
 #endif
 
-	    shooterPIDChooser->AddObject("Shoot with PID", true);
-	    shooterPIDChooser->AddDefault("Shoot with voltage", false);
-
 	    SmartDashboard::PutData("Drive Control", driveChooser);
-	    SmartDashboard::PutData("Shooter PID Chooser", shooterPIDChooser);
 
-		  CameraServer::GetInstance()->StartAutomaticCapture(0);
-
-		  driveAngle = -1;
+            CameraServer::GetInstance()->StartAutomaticCapture(0);
+            
+            driveAngle = -1;
   }
 
   void backUpMod(double seconds) {
@@ -206,37 +176,6 @@ private:
 	  logger->CloseLog();
   }
 
-  void Shoot() {
-	  if (usePIDForManualShooting) {
-		  logger->LogPID(logShooter, &leftPID);
-		  logger->LogPID(logShooter, &rightPID);
-		  if (!leftPID.IsEnabled()) {
-			  leftPID.Enable();
-		  }
-		  if (!rightPID.IsEnabled()) {
-			  rightPID.Enable();
-		  }
-
-			leftShooter.SetSpeed(-leftOut.m_output);
-			rightShooter.SetSpeed(rightOut.m_output);
-	  } else {
-		  printf("Shooting speed: %lf\n", shootingSpeed);
-		  leftShooter.SetSpeed(-shootingSpeed + .08);
-		  rightShooter.SetSpeed(shootingSpeed);
-		  logger->Log(logShooter, "Running shooter at %lf\n", shootingSpeed);
-	  }
-  }
-
-  void StopShooting() {
-	  leftPID.Disable();
-	  rightPID.Disable();
-	  leftPID.Reset();
-	  rightPID.Reset();
-	  leftShooter.SetSpeed(0);
-	  rightShooter.SetSpeed(0);
-	  logger->Log(logShooter, "Stopping shooter\n");
-  }
-
   void autoRightGearHighGoal() {
     if (state == rGHG_LowGear) {
       shifter.Set(DoubleSolenoid::kForward);
@@ -272,13 +211,13 @@ private:
         state++;
       }
     } else if (state == rGHG_ShootFuel) {
-      AutomaticShooting();
+//      AutomaticShooting();
       if (timer.Get() > 5) {
         timer.Reset();
         state++;
       }
     } else {
-      StopShooting();
+//      StopShooting();
     }
   }
 
@@ -714,7 +653,7 @@ private:
   		  state++;
   		  break;
 
-  	  case rGRHB_RotateRight0Init:
+  	  case rGRHB_RotateRight0:
   		  if (TurnAngle(fmod((gRAngleInit + 60), 360))) {
 				//Intentionally Empty "If Statement"
 					logger->Log(logAuton, "Turning 60 degrees\n");
@@ -878,13 +817,13 @@ private:
       }
     }
     else if (state == HGR_Shoot) {
-      AutomaticShooting();
+//      AutomaticShooting();
       if (timer.Get() > 5) {
         timer.Reset();
         state++;
       }
     } else {
-      StopShooting();
+//      StopShooting();
     }
   }
 
@@ -937,32 +876,8 @@ private:
     }
   }
 
-  void AutomaticShooting() {
-	Shoot();
-	logger->Log(logShooter, "Automatic shooting\n");
-    conveyor.SetSpeed(CONVEYOR_SPEED);
-    if (fabs(leftShooterEncoder.GetRPM() - (MAX_RPM*shootingSpeed)) < LEFT_TOLERANCE) { //change to fit new encoders
-      leftTower.SetSpeed(TOWER_SPEED);
-      logger->Log(logShooter, "Moving left tower\n");
-    } else {
-    	logger->Log(logShooter, "Stopping left tower\n");
-      leftTower.SetSpeed(0);
-    }
-
-    if (fabs(rightShooterEncoder.GetRPM() - (MAX_RPM*shootingSpeed)) < RIGHT_TOLERANCE) { //change to fit new encoders
-      rightTower.SetSpeed(-TOWER_SPEED);
-      logger->Log(logShooter, "Moving right tower\n");
-    } else {
-    	logger->Log(logShooter, "Stopping right tower\n");
-      rightTower.SetSpeed(0);
-    }
-  }
-
   void TeleopInit() {
 //	  CameraServer::GetInstance()->AddCamera(gearCam);
-
-    leftPID.SetSetpoint(shootingSpeed * MAX_RPM);
-    rightPID.SetSetpoint(shootingSpeed * MAX_RPM);
 //    leftPID.SetOutputRange(0, .6);
 //    rightPID.SetOutputRange(0, 0.6);
     logger->OpenNewLog("_teleop");
@@ -970,21 +885,6 @@ private:
 #ifndef USE_CLIMBER_SWITCH
     useClimberBackwards = climbChooser->GetSelected();
 #endif
-//    usePIDForManualShooting = shooterPIDChooser->GetSelected();
-    usePIDForManualShooting = false;
-  }
-
-  void ManualShooting() {
-    logger->Log(logShooter, "Shooting manually\n");
-    leftTower.SetSpeed(TOWER_SPEED);
-    rightTower.SetSpeed(-TOWER_SPEED);
-    conveyor.SetSpeed(CONVEYOR_SPEED);
-    Shoot();
-  }
-
-  // Takes a speed [-1.0, 1.0] and scales to [0.0, 1.0]
-  double ScaledShootingSpeed(double rawAxis) {
-    return (-rawAxis/2) + 0.5;
   }
 
   void Monitor() {
@@ -995,17 +895,11 @@ private:
 
 	  SmartDashboard::PutNumber("Left Drive Encoder", leftDriveEncoder.Get());
 	  SmartDashboard::PutNumber("Right Drive Encoder", rightDriveEncoder.Get());
-	  SmartDashboard::PutNumber("Left Shooter Encoder", leftShooterEncoder.PIDGet());
-	  SmartDashboard::PutNumber("Right Shooter Encoder", rightShooterEncoder.PIDGet());
-
-	  SmartDashboard::PutNumber("Shooting setpoint", shootingSpeed * MAX_RPM);
 
 	  SmartDashboard::PutNumber("Left Drive Encoder", leftDriveEncoder.Get());
 	  SmartDashboard::PutNumber("Right Drive Encoder", rightDriveEncoder.Get());
 
 	  SmartDashboard::PutNumber("Gyro", gyro.GetAngle());
-
-	  SmartDashboard::PutNumber("Left Shooter Integral 1", leftShooterEncoder.Get());
   }
 
   void TeleopPeriodic() {
@@ -1035,18 +929,6 @@ private:
     	driveAngle = -1;
     }
     logger->Log(logDriveTrain, "Driving at (%lf, %lf)\n", left, right);
-
-    if (op.GetRawButton(shootingModeSwitch)) {
-      logger->Log(logShooter, "Manual shooting mode\n");
-      shootingSpeed = ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
-    } else {
-    	shootingSpeed = SHOOTING_SPEED;
-    }
-
-    double setpoint = shootingSpeed * MAX_RPM;
-    leftPID.SetSetpoint(setpoint);
-    rightPID.SetSetpoint(setpoint);
-    logger->Log(logShooter, "Current pid setpoint: %lf\n", setpoint);
 
     if (op.GetRawButton(intakePositionSwitch)) {
       intake.Set(INTAKE_DOWN);
@@ -1100,56 +982,7 @@ private:
     	}
     }
 
-    if (!op.GetRawButton(shootingModeSwitch)) {
-      //Automatic mode
-      if (op.GetRawButton(shootingButton)) {
-    	  logger->Log(logShooter, "Shooting button pressed\n");
-        AutomaticShooting();
-      } else {
-        StopShooting();
-        conveyor.SetSpeed(0);
-        leftTower.SetSpeed(0);
-        rightTower.SetSpeed(0);
-      }
-    } else {
-      if (op.GetRawButton(shootingTowersConveyorButton)) {
-        logger->Log(logShooter, "Manual shooting button pressed\n");
-        ManualShooting();
-      }
-      else {
-        if (op.GetRawButton(conveyorIn)) {
-          logger->Log(logConveyor, "Conveyor in pressed\n");
-          conveyor.SetSpeed(CONVEYOR_SPEED); //neg or pos
-        } else if (op.GetRawButton(conveyorOut)) {
-          logger->Log(logConveyor, "Conveyor out pressed\n");
-          conveyor.SetSpeed(-CONVEYOR_SPEED);
-        } else {
-          logger->Log(logConveyor, "Stopping conveyor\n");
-          conveyor.SetSpeed(0.0);
-        }
-
-        if (op.GetRawButton(shootingButton)){
-          logger->Log(logShooter, "Just manual shooting\n");
-          Shoot();
-        } else {
-          StopShooting();
-        }
-
-        if (op.GetRawButton(towersInButton)) {
-          leftTower.SetSpeed(TOWER_SPEED); //neg or pos
-          rightTower.SetSpeed(-TOWER_SPEED);
-          logger->Log(logTower, "Moving towers up\n");
-        } else if (op.GetRawButton(towersOutButton)) {
-          leftTower.SetSpeed(-TOWER_SPEED);
-          rightTower.SetSpeed(TOWER_SPEED);
-          logger->Log(logTower, "Moving towers down\n");
-        } else {
-          leftTower.SetSpeed(0.0);
-          rightTower.SetSpeed(0.0);
-          logger->Log(logTower, "Stopping towers\n");
-        }
-      }
-    }
+    shooter->Execute();
 
     Monitor();
   }
