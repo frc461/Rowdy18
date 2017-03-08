@@ -9,25 +9,16 @@
 #include "Shooter.h"
 #include "DriveTrain.h"
 #include "Intake.h"
-
-#define CLIMBER_SPEED -1
+#include "Climber.h"
 
 #define USE_GYRO_DRIVE_CORRECTION
-
-#define USE_CLIMBER_SWITCH
 
 //Gyro, left is positive, right is negative
 
 class Robot: public IterativeRobot {
   Joystick op;
-  Spark climber;
-#ifndef USE_CLIMBER_SWITCH
-  bool useClimberBackwards = false;
-  SendableChooser<bool> *climbChooser = new SendableChooser<bool>();
-#endif
   Timer timer;
   AnalogInput currentSensor;
-  Preferences *prefs;
   int mode = centerGear;
   int state = 0;
   double initialAngle = -1;
@@ -43,31 +34,20 @@ class Robot: public IterativeRobot {
   OperatorControls *operatorControls = new OperatorControls(1);
   Shooter *shooter = new Shooter(operatorControls);
   Intake *intake = new Intake(operatorControls);
+  Climber *climber = new Climber(operatorControls);
 
 public:
   Robot() :
     op(1),
-    climber(climberPWM),
     timer(),
-    currentSensor(3),
-    prefs()
-
-  {
+    currentSensor(3)
+{
     SmartDashboard::init();
     //b = DriverStationLCD::GetInstance();
   }
 
 private:
-  double rollerSpeed;
   void RobotInit() {
-	    prefs = Preferences::GetInstance();
-	    rollerSpeed = prefs->GetDouble("rollerSpeed", 0.9);
-
-#ifndef USE_CLIMBER_SWITCH
-	    climbChooser->AddDefault("Forward", false);
-	    climbChooser->AddObject("Backward", true);
-	    SmartDashboard::PutData("Climber Direction", climbChooser);
-#endif
 
             CameraServer::GetInstance()->StartAutomaticCapture(0);
             
@@ -838,13 +818,7 @@ private:
   }
 
   void TeleopInit() {
-//	  CameraServer::GetInstance()->AddCamera(gearCam);
-//    leftPID.SetOutputRange(0, .6);
-//    rightPID.SetOutputRange(0, 0.6);
     logger->OpenNewLog("_teleop");
-#ifndef USE_CLIMBER_SWITCH
-    useClimberBackwards = climbChooser->GetSelected();
-#endif
   }
 
   void Monitor() {
@@ -857,20 +831,9 @@ private:
   void TeleopPeriodic() {
 	  logger->LogRunTime();
 
-    if (op.GetRawButton(climberButton)) {
-    	logger->Log(logClimber, "Moving climber\n");
-    	if(op.GetRawButton(climberDownSwitch)){
-    		climber.SetSpeed(-CLIMBER_SPEED);
-    	} else {
-    		climber.SetSpeed(CLIMBER_SPEED);
-    	}
-    }
-    else {
-    	logger->Log(logClimber, "Stopping climber\n");
-      climber.SetSpeed(0);
-    }
-
     driveTrain->Execute();
+
+    climber->Execute();
     shooter->Execute();
     intake->Execute();
 

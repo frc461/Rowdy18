@@ -34,6 +34,8 @@ public:
   Direction GetIntakeDirection();
   Direction GetIntakeRollerDirection();
 
+  Direction GetClimberDirection();
+  
 private:
   Joystick *joystick;
 };
