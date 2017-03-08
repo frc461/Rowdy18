@@ -31,6 +31,9 @@ public:
   Direction GetConveyorDirection();
   Direction GetTowerDirection();
 
+  Direction GetIntakeDirection();
+  Direction GetIntakeRollerDirection();
+
 private:
   Joystick *joystick;
 };

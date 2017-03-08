@@ -8,12 +8,10 @@
 
 #include "Shooter.h"
 #include "DriveTrain.h"
+#include "Intake.h"
 
-#define ROLLER_SPEED 0.9
 #define CLIMBER_SPEED -1
 
-#define INTAKE_DOWN DoubleSolenoid::kReverse
-#define INTAKE_UP DoubleSolenoid::kForward
 #define USE_GYRO_DRIVE_CORRECTION
 
 #define USE_CLIMBER_SWITCH
@@ -22,8 +20,6 @@
 
 class Robot: public IterativeRobot {
   Joystick op;
-  Spark intakeRoller;   //motor controller
-  DoubleSolenoid intake;        //pneumatic controller
   Spark climber;
 #ifndef USE_CLIMBER_SWITCH
   bool useClimberBackwards = false;
@@ -46,12 +42,11 @@ class Robot: public IterativeRobot {
 
   OperatorControls *operatorControls = new OperatorControls(1);
   Shooter *shooter = new Shooter(operatorControls);
+  Intake *intake = new Intake(operatorControls);
 
 public:
   Robot() :
     op(1),
-    intakeRoller(intakeRollerPWM),
-    intake(intakeForwardPCM, intakeReversePCM),
     climber(climberPWM),
     timer(),
     currentSensor(3),
@@ -861,25 +856,6 @@ private:
 
   void TeleopPeriodic() {
 	  logger->LogRunTime();
-    if (op.GetRawButton(intakePositionSwitch)) {
-      intake.Set(INTAKE_DOWN);
-      logger->Log(logIntake, "Moving intake down\n");
-    }
-    else {
-    	logger->Log(logIntake, "Moving intake up\n");
-      intake.Set(INTAKE_UP);
-    }
-
-    if (op.GetRawButton(spinIntakeForwardButton)) {
-    	logger->Log(logIntake, "Spinning intake forward\n");
-      intakeRoller.Set(rollerSpeed);
-    } else if (op.GetRawButton(spinIntakeBackwardButton)) {
-    	logger->Log(logIntake, "Spinning intake backward\n");
-      intakeRoller.Set(-rollerSpeed);
-    } else {
-    	logger->Log(logIntake, "Stopping intake\n");
-      intakeRoller.Set(0);
-    }
 
     if (op.GetRawButton(climberButton)) {
     	logger->Log(logClimber, "Moving climber\n");
@@ -896,6 +872,7 @@ private:
 
     driveTrain->Execute();
     shooter->Execute();
+    intake->Execute();
 
     Monitor();
   }

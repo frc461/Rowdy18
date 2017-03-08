@@ -52,3 +52,19 @@ Direction OperatorControls::GetTowerDirection() {
 
   return Direction::kOff;
 }
+
+Direction OperatorControls::GetIntakeDirection() {
+  if (joystick->GetRawButton(intakePositionSwitch))
+    return Direction::kBackward;
+  else
+    return Direction::kForward;
+}
+
+Direction OperatorControls::GetIntakeRollerDirection() {
+  if (joystick->GetRawButton(spinIntakeForwardButton))
+    return Direction::kForward;
+  else if (joystick->GetRawButton(spinIntakeBackwardButton))
+    return Direction::kBackward;
+  else
+    return Direction::kOff;
+}
