@@ -54,6 +54,7 @@ class Robot: public IterativeRobot {
   Spark leftTower;
   Spark rightShooter;
   Spark rightTower;
+  Spark gearIntake;
   RateCounter leftShooterEncoder;      //sensor
   RateCounter rightShooterEncoder;
   Encoder leftDriveEncoder;
@@ -91,6 +92,7 @@ public:
     frontRight(frontRightPWM),
     backLeft(backLeftPWM),
     backRight(backRightPWM),
+    gearIntake(gearIntakePWM),
     driveTrain(frontLeft, backLeft, frontRight, backRight),
     intakeRoller(intakeRollerPWM),
     intake(intakeForwardPCM, intakeReversePCM),
@@ -1060,12 +1062,15 @@ private:
     if (op.GetRawButton(spinIntakeForwardButton)) {
     	logger->Log(logIntake, "Spinning intake forward\n");
       intakeRoller.Set(rollerSpeed);
+      gearIntake.Set(rollerSpeed);
     } else if (op.GetRawButton(spinIntakeBackwardButton)) {
     	logger->Log(logIntake, "Spinning intake backward\n");
       intakeRoller.Set(-rollerSpeed);
+      gearIntake.Set(-rollerSpeed);
     } else {
     	logger->Log(logIntake, "Stopping intake\n");
       intakeRoller.Set(0);
+      gearIntake.Set(0);
     }
 
     if (op.GetRawButton(climberButton)) {

@@ -130,7 +130,8 @@ enum PWM {
 	leftTowerPWM = 6,
 	rightShooterPWM = 8, //shooter 2
 	rightTowerPWM = 7,
-	conveyorPWM = 5
+	conveyorPWM = 5,
+	gearIntakePWM = 11
 };
 
 enum PCM {
