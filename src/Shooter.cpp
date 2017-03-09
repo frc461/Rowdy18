@@ -72,13 +72,13 @@ void Shooter::AutomaticShooting() {
   Shoot();
 
   conveyor->SetSpeed(CONVEYOR_SPEED);
-  if (fabs(leftShooterEncoder->GetRPM() - (MAX_RPM*shootingSpeed)) < LEFT_TOLERANCE) { //change to fit new encoders
+  if (fabs(leftShooterEncoder->GetRPM() - (shootingSpeed)) < LEFT_TOLERANCE) { //change to fit new encoders
     leftTower->SetSpeed(TOWER_SPEED);
   } else {
     leftTower->SetSpeed(0);
   }
 
-  if (fabs(rightShooterEncoder->GetRPM() - (MAX_RPM*shootingSpeed)) < RIGHT_TOLERANCE) { //change to fit new encoders
+  if (fabs(rightShooterEncoder->GetRPM() - (shootingSpeed)) < RIGHT_TOLERANCE) { //change to fit new encoders
     rightTower->SetSpeed(-TOWER_SPEED);
   } else {
        rightTower->SetSpeed(0);

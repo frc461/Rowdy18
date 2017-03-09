@@ -13,9 +13,16 @@
 #include "Ports.h"
 
 class PeriodicExecutable {
-public:
-virtual void Execute() = 0;
-virtual void Log() = 0;
+ public:
+  PeriodicExecutable();
+  virtual void Execute() = 0;
+  virtual void Log() = 0;
+
+  bool Wait(double seconds);
+
+ private:
+  Timer *timer;
+  bool isWaiting;
 };
 
 #endif /* SRC_PERIODICEXECUTABLE_H_ */

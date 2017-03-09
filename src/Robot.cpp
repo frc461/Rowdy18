@@ -80,7 +80,7 @@ private:
 	  currentAngle = fmod(gyro.GetAngle(), 360);
 	  if (currentAngle == 0.0) {
 		  if (currentAngle > 180) {
-			  currentAngle -= 360;
+			  currentAngle -= 360;o
 		  }
 
 		  double error = currentAngle - driveAngle;
@@ -822,10 +822,10 @@ private:
   }
 
   void Monitor() {
-	  SmartDashboard::PutNumber("Total current", pdp->GetTotalCurrent());
-	  SmartDashboard::PutNumber("Conveyor current", pdp->GetCurrent(pdpConveyor));
-	  SmartDashboard::PutNumber("Intake current", pdp->GetCurrent(pdpIntake));
-	  SmartDashboard::PutNumber("Intake current analog", (currentSensor.GetAverageVoltage() - 0.6) / 0.04);
+//  SmartDashboard::PutNumber("Total current", pdp->GetTotalCurrent());
+//  SmartDashboard::PutNumber("Conveyor current", pdp->GetCurrent(pdpConveyor));
+//  SmartDashboard::PutNumber("Intake current", pdp->GetCurrent(pdpIntake));
+//  SmartDashboard::PutNumber("Intake current analog", (currentSensor.GetAverageVoltage() - 0.6) / 0.04);
   }
 
   void TeleopPeriodic() {

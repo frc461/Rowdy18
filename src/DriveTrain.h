@@ -17,6 +17,10 @@ class DriveTrain: public PeriodicExecutable {
   DriveTrain(DriverControls *controls);
   void Execute();
   void Log();
+
+  bool TurnToAngle(double degrees);
+  bool DriveStraight(double inches, double speed=0.5);
+  
   virtual ~DriveTrain();
 
  private:
@@ -31,6 +35,10 @@ class DriveTrain: public PeriodicExecutable {
   ADXRS450_Gyro *gyro;
 
   void RunShifter();
+
+  bool isTurning;
+  bool isDrivingStraight;
+  int startingLeftEncoder;
 };
 
 #endif /* SRC_DRIVETRAIN_H_ */
