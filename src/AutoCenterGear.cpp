@@ -9,13 +9,18 @@
 
 AutoCenterGear::AutoCenterGear(DriveTrain* driveTrain) {
   this->driveTrain = driveTrain;
-  
+}
+
+void AutoCenterGear::Initialize() {
+  AutoBase::Initialize();
+  state = 0;
+  driveTrain->Initialize();
 }
 
 void AutoCenterGear::Execute() {
   switch(state) {
   case forward:
-    if (driveTrain->DriveStraight(65)) ++state;
+    if (driveTrain->DriveStraight(-74)) ++state;
     break;
 
   case finished:

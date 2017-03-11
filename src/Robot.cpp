@@ -11,6 +11,8 @@
 #include "Intake.h"
 #include "Climber.h"
 
+#include "AutoCenterGear.h"
+
 #define USE_GYRO_DRIVE_CORRECTION
 
 //Gyro, left is positive, right is negative
@@ -36,6 +38,7 @@ class Robot: public IterativeRobot {
   Climber *climber = new Climber(operatorControls);
   cs::UsbCamera cam0;
   cs::UsbCamera cam1;
+  AutoCenterGear *currentAuto = new AutoCenterGear(driveTrain);
 
 public:
   Robot() :
@@ -774,6 +777,8 @@ private:
   }
 
   void AutonomousPeriodic() {
+    Logger::LogRunTime();
+    currentAuto->Execute();
 //	  logger->LogRunTime();
 //	  logger->Log(logAuton, "Auton is in state %d\n", state);
 //    switch (mode) {
@@ -818,13 +823,13 @@ private:
     climber->Initialize();
     shooter->Initialize();
     intake->Initialize();
+
+    currentAuto->Initialize();
   }
 
   void TeleopInit() {
-    printf("Teleop init start\n");
     Logger::OpenNewLog("_teleop");
     Initialize();
-    printf("Teleop init finish\n");
   }
 
   void Monitor() {

@@ -20,6 +20,7 @@ enum State {
 class AutoCenterGear: public AutoBase {
  public:
   AutoCenterGear(DriveTrain* driveTrain);
+  void Initialize();
   virtual ~AutoCenterGear();
 
   void Execute();

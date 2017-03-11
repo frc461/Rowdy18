@@ -12,6 +12,10 @@ AutoBase::AutoBase() {
 
 }
 
+void AutoBase::Initialize() {
+  state = 0;
+}
+
 AutoBase::~AutoBase() {
   // TODO Auto-generated destructor stub
 }

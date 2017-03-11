@@ -14,6 +14,7 @@
 class AutoBase: public PeriodicExecutable {
  public:
   AutoBase();
+  void Initialize();
   virtual ~AutoBase();
  protected:
   int state;

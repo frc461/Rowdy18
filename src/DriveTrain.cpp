@@ -56,7 +56,7 @@ void DriveTrain::Execute() {
 
   driveTrain->TankDrive(leftSpeed, rightSpeed);
 
-  if (isTurning) {
+  if (isTurning || isDrivingStraight) {
     return;
   }
 
@@ -95,6 +95,8 @@ void DriveTrain::Log() {
     Logger::Log(logDriveTrain, "Is driving straight, started at %lf\n", startingLeftEncoder);
     Logger::Log(logDriveTrain, "Current angle: %lf, target angle %lf\n", currentAngle, targetAngle);
   }
+
+  SmartDashboard::PutNumber("Gyro", gyro->GetAngle());
 }
 
 DriveTrain::~DriveTrain() {
@@ -136,18 +138,18 @@ bool DriveTrain::DriveStraight(double inches, double speed) {
   }
 
   double correction, currentAngle;
-  currentAngle = fmod(gyro->GetAngle(), 360);
+  currentAngle = fmod(gyro->GetAngle(), 360) - 180;
 
   double error = currentAngle - targetAngle;
   correction = (error / 180) * 3.0;
 
   if (inches > 0) {
-    if (DRIVE_DISTANCE_INCHES(leftDriveEncoder->Get() - startingLeftEncoder) > inches) {
+    if ((leftDriveEncoder->Get() - startingLeftEncoder) > DRIVE_DISTANCE_INCHES(inches)) {
       isDrivingStraight = false;
     }
     speed = DRIVE_FORWARD_SPEED(speed);
   } else {
-    if (DRIVE_DISTANCE_INCHES(leftDriveEncoder->Get() - startingLeftEncoder) < inches) {
+    if ((leftDriveEncoder->Get() - startingLeftEncoder) < DRIVE_DISTANCE_INCHES(inches)) {
       isDrivingStraight = false;
     }
 
