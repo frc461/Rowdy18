@@ -10,19 +10,28 @@
 #define LEFT_TOLERANCE 10
 #define RIGHT_TOLERANCE 10
 
-#define TOWER_SPEED -0.9
+#define TOWER_SPEED -0.70
 #define SHOOTING_SPEED 0.8
 #define CONVEYOR_SPEED 0.9
 #define ROLLER_SPEED 0.9
-#define CLIMBER_SPEED -0.9
+#define CLIMBER_SPEED -1
 
 #define INTAKE_DOWN DoubleSolenoid::kReverse
 #define INTAKE_UP DoubleSolenoid::kForward
 #define SHIFTER_LOW DoubleSolenoid::kReverse
 #define SHIFTER_HIGH DoubleSolenoid::kForward
 
-#define MAX_RPM -6000
-//#define USE_PID_FOR_MANUAL_SHOOTING
+#define MAX_RPM 6000
+
+#define USE_GYRO_DRIVE_CORRECTION
+
+#define DRIVE_DISTANCE_INCHES(x) x * 28.647
+#define DRIVE_FORWARD_SPEED(x) -x
+#define DRIVE_BACKWARD_SPEED(x) x
+
+#define USE_CLIMBER_SWITCH
+
+//Gyro, left is positive, right is negative
 
 class Robot: public IterativeRobot {
 
@@ -36,8 +45,10 @@ class Robot: public IterativeRobot {
   Spark intakeRoller;   //motor controller
   DoubleSolenoid intake;        //pneumatic controller
   Spark climber;
+#ifndef USE_CLIMBER_SWITCH
   bool useClimberBackwards = false;
   SendableChooser<bool> *climbChooser = new SendableChooser<bool>();
+#endif
   DoubleSolenoid shifter;
   Spark leftShooter;
   Spark leftTower;
@@ -49,14 +60,14 @@ class Robot: public IterativeRobot {
   Encoder rightDriveEncoder;
   SettablePIDOut leftOut;
   SettablePIDOut rightOut;
-  PIDController leftPID;        //error adjustor
-  PIDController rightPID;
+  BetterPIDController leftPID;        //error adjustor
+  BetterPIDController rightPID;
   ADXRS450_Gyro gyro;
   Timer timer;
   Spark conveyor;
   AnalogInput currentSensor;
   Preferences *prefs;
-  int mode = 0;
+  int mode = centerGear;
   int state = 0;
   double initialAngle = -1;
   double shootingSpeed = SHOOTING_SPEED;
@@ -66,7 +77,11 @@ class Robot: public IterativeRobot {
   Joystick rightJoystick;
   bool useXboxControllerForDriving = true;
   SendableChooser<bool> *driveChooser = new SendableChooser<bool>();
+  SendableChooser<bool> *shooterPIDChooser = new SendableChooser<bool>();
   double driveAngle = -1;
+  int gRPulseInit;
+  double gRAngleInit;
+  bool usePIDForManualShooting = true;
 
 public:
   Robot() :
@@ -93,6 +108,7 @@ public:
 	rightOut(),
     leftPID(0, 0.00001, 0, &leftShooterEncoder, &leftOut,0.05),
     rightPID(0, 0.00001, 0, &rightShooterEncoder, &rightOut,0.05),
+	gyro(SPI::kOnboardCS0),
     timer(),
     conveyor(conveyorPWM),
 	currentSensor(3),
@@ -112,10 +128,22 @@ private:
 	    rollerSpeed = prefs->GetDouble("rollerSpeed", 0.9);
 	    driveChooser->AddDefault("Xbox controller", true);
 	    driveChooser->AddObject("Joysticks", false);
+
+#ifndef USE_CLIMBER_SWITCH
 	    climbChooser->AddDefault("Forward", false);
 	    climbChooser->AddObject("Backward", true);
-	    SmartDashboard::PutData("Drive Control", driveChooser);
 	    SmartDashboard::PutData("Climber Direction", climbChooser);
+#endif
+
+	    shooterPIDChooser->AddObject("Shoot with PID", true);
+	    shooterPIDChooser->AddDefault("Shoot with voltage", false);
+
+	    SmartDashboard::PutData("Drive Control", driveChooser);
+	    SmartDashboard::PutData("Shooter PID Chooser", shooterPIDChooser);
+
+		  CameraServer::GetInstance()->StartAutomaticCapture(0);
+
+		  driveAngle = -1;
   }
 
   void backUpMod(double seconds) {
@@ -128,55 +156,76 @@ private:
   }
 
   void DriveStraight(double speed) {
-	  if (driveAngle == -1) {
+	  double correction;
+	  double currentAngle = 0;
+#ifdef USE_GYRO_DRIVE_CORRECTION
+	  if (driveAngle == -1.0) {
 		  driveAngle = fmod(gyro.GetAngle(), 360);
 	  }
 
-	  double currentAngle = fmod(gyro.GetAngle(), 360);
-	  if (currentAngle > 180) {
-		  currentAngle -= 360;
+	  if (speed == 0) {
+		  driveAngle = -1;
 	  }
 
-	  double error = currentAngle - driveAngle;
-	  double correction = (error / 180) / 2;
+	  currentAngle = fmod(gyro.GetAngle(), 360);
+	  if (currentAngle == 0.0) {
+		  if (currentAngle > 180) {
+			  currentAngle -= 360;
+		  }
 
-	  driveTrain.TankDrive(speed + correction, speed - correction);
+		  double error = currentAngle - driveAngle;
+		  correction = (error / 180) * 2.8;
+	  } else {
+		  correction = 0;
+	  }
+#else
+	  correction = 0;
+#endif
+
+	  driveTrain.TankDrive(speed - correction, speed + correction);
 
 	  logger->Log(logDriveTrain, "Current angle %lf, target angle: %lf, correction: %lf\n", currentAngle, driveAngle, correction);
+  }
+
+  bool TurnAngle(double targetAngle){
+	  double currentAngle = fmod(gyro.GetAngle(), 360);
+
+	  if(fabs(currentAngle - targetAngle) > 3) { //Magic deadzone
+		  if(currentAngle > targetAngle){
+			  driveTrain.TankDrive(-0.5, .05);
+		  }else if (currentAngle < targetAngle) {
+			  driveTrain.TankDrive(0.5, -0.5);
+		  }
+		  return false;
+	  } else {
+		  return true;
+	  }
   }
 
   void DisabledInit() {
 	  logger->CloseLog();
   }
 
-#ifdef USE_PID_FOR_MANUAL_SHOOTING
   void Shoot() {
-	  if (!leftPID.IsEnabled()) {
-		  leftPID.Enable();
+	  if (usePIDForManualShooting) {
+		  logger->LogPID(logShooter, &leftPID);
+		  logger->LogPID(logShooter, &rightPID);
+		  if (!leftPID.IsEnabled()) {
+			  leftPID.Enable();
+		  }
+		  if (!rightPID.IsEnabled()) {
+			  rightPID.Enable();
+		  }
+
+			leftShooter.SetSpeed(-leftOut.m_output);
+			rightShooter.SetSpeed(rightOut.m_output);
+	  } else {
+		  printf("Shooting speed: %lf\n", shootingSpeed);
+		  leftShooter.SetSpeed(-shootingSpeed + .08);
+		  rightShooter.SetSpeed(shootingSpeed);
+		  logger->Log(logShooter, "Running shooter at %lf\n", shootingSpeed);
 	  }
-	  if (!rightPID.IsEnabled()) {
-		  rightPID.Enable();
-	  }
-
-	  double outLeft = -(leftOut.m_output + leftPID.GetSetpoint() * .00003);
-	  double outRight = rightOut.m_output + rightPID.GetSetpoint() * .00003;
-
-	  leftShooter.SetSpeed(outLeft);
-	  rightShooter.SetSpeed(outRight);
-#ifdef D_SHOOTING
-	  printf("left input: %lf, setpoint: %lf, output: %lf, error: %lf, avg error: %lf\n", leftShooterEncoder.PIDGet(), leftPID.GetSetpoint(), outLeft, leftPID.GetError(), leftPID.GetAvgError());
-	  printf("right input: %lf, setpoint: %lf, output: %lf, error: %lf, avg error: %lf\n", rightShooterEncoder.PIDGet(), rightPID.GetSetpoint(), outRight, rightPID.GetError(), rightPID.GetAvgError());
-	  printf("LeftP: %lf, RightP: %lf\n", leftPID.GetP(), rightPID.GetP());
-#endif
   }
-#else
-  void Shoot() {
-	  leftShooter.SetSpeed(shootingSpeed);
-	  rightShooter.SetSpeed(-shootingSpeed);
-	  logger->Log(logShooter, "Running shooter at %lf\n", shootingSpeed);
-  }
-
-#endif
 
   void StopShooting() {
 	  leftPID.Disable();
@@ -187,7 +236,6 @@ private:
 	  rightShooter.SetSpeed(0);
 	  logger->Log(logShooter, "Stopping shooter\n");
   }
-
 
   void autoRightGearHighGoal() {
     if (state == rGHG_LowGear) {
@@ -256,81 +304,496 @@ private:
   }
 
   void autoCenterGear() {
-    if (state == 0) {
-      backUpMod(15);
-    }
+	  shifter.Set(SHIFTER_LOW);
+	  switch (state) {
+	  case CG_Init:
+		  timer.Reset();
+		  timer.Start();
+		  leftDriveEncoder.Reset();
+		  rightDriveEncoder.Reset();
+		  driveAngle = -1;
+		  state++;
+		  break;
+
+	  case CG_Drive:
+		  DriveStraight(DRIVE_BACKWARD_SPEED(.6));
+
+		  if (timer.Get() > 1) {
+			  intake.Set(INTAKE_DOWN);
+		  } else {
+			  intake.Set(INTAKE_UP);
+		  }
+
+		  if (leftDriveEncoder.Get() < -DRIVE_DISTANCE_INCHES(65)) {
+			  state++;
+		  }
+		  break;
+
+	  case CG_FINISH:
+		  DriveStraight(DRIVE_BACKWARD_SPEED(0));
+	  }
   }
 
   void autoLeftGearReload() {
-    if (state == lGR_LowGear) {
+	  logger->Log(logAuton, "Left drive: %d, right drive: %d, gyro: %lf\n", leftDriveEncoder.Get(), rightDriveEncoder.Get(), gyro.GetAngle());
+	  logger->Log(logAuton, "Auton state autoLeftGearReload is in state %d\n", state);
+	if (state == lGR_Init) {
+		timer.Reset();
+		timer.Start();
+		logger->Log(logAuton, "Timer reset\n");
+		state++;
+	}
+	else if (state == lGR_LowGear) {
       shifter.Set(SHIFTER_LOW);
+	  logger->Log(logAuton, "Shifted to low gear\n");
       if (timer.Get() > 1) {
-        timer.Reset();
+    	  timer.Reset();
+    	  timer.Start();
+  		logger->Log(logAuton, "1 second passed, timer reset\n");
         state++;
       }
+    }
+    else if (state == lGR_BackUp0Init) {
+    	gRPulseInit = leftDriveEncoder.Get();
+		logger->Log(logAuton, "Init pulse set at %d\n", gRPulseInit);
+    	state++;
     }
     else if (state == lGR_BackUp0) {
-      backUpMod(2);
-    }
-    else if (state == lGR_RotateRight0) {
-      if (initialAngle == -1) {
-        initialAngle = gyro.GetAngle();
-      }
-      if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
-        driveTrain.TankDrive(0.5, -0.5);
-      }
-      else {
-        driveTrain.TankDrive(0.0, 0);
-        timer.Reset();
-        state++;
-      }
-    }
-    else if (state == lGR_BackUp1) {
-      backUpMod(2);
-    }
-    else if (state == lGR_PlaceGear) {
-      //TODO: implement later
-      if (timer.Get() > 4) {
-        timer.Reset();
-        state++;
-      }
-    }
-    else if (state == lGR_DriveForward) {
-      driveTrain.TankDrive(1, 1, false);
-      if (timer.Get() > 2) {
-        driveTrain.TankDrive(0.0, 0, false);
-        timer.Reset();
-        state++;
-      }
-    }
-    else if (state == lGR_RotateRight1) {
-      if (initialAngle == -1) {
-        initialAngle = gyro.GetAngle();
-      }
-      if ((int) (fabs(gyro.GetAngle() - initialAngle)) % 360 <= 85) {
-        driveTrain.TankDrive(0.5, -0.5);
-      }
-      else {
-        driveTrain.TankDrive(0.0, 0);
-        timer.Reset();
-        state++;
+      DriveStraight(DRIVE_BACKWARD_SPEED(.5));
+	  logger->Log(logAuton, "Driving backwards at 0.5 power\n");
+      if(leftDriveEncoder.Get() < -DRIVE_DISTANCE_INCHES(12) + gRPulseInit) {
+          DriveStraight(0);
+          driveAngle = -1;
+  		  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+    	  state++;
+    	  timer.Reset();
+    	  timer.Start();
+  		  logger->Log(logAuton, "Timer reset\n");
       }
     }
     else if (state == lGR_LowerIntake) {
-      intake.Set(INTAKE_DOWN);
-      if (timer.Get() > 1) {
-        timer.Reset();
-        state++;
+        intake.Set(INTAKE_DOWN);
+		logger->Log(logAuton, "Intake put down\n");
+        if (timer.Get() > 1) {
+          timer.Reset();
+          logger->Log(logAuton, "1 second passed, timer reset\n");
+          state++;
+        }
       }
+    else if (state == lGR_BackUp1Init) {
+      	gRPulseInit = leftDriveEncoder.Get();
+		logger->Log(logAuton, "Init pulse set\n");
+      	state++;
     }
-    else if (state == lGR_DriveToHopper) {
-      driveTrain.TankDrive(0.5, 0.5);
-      if (timer.Get() > 3) {
-        timer.Reset();
-        state++;
-      }
+    else if (state == lGR_BackUp1) {
+    	  DriveStraight(DRIVE_BACKWARD_SPEED(.5));
+    	  logger->Log(logAuton, "Driving backwards at 0.5 power\n");
+		  if(leftDriveEncoder.Get() < -DRIVE_DISTANCE_INCHES(50) + gRPulseInit) {
+			  DriveStraight(0);
+	  		  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+			  state++;
+		  }
     }
+    else if (state == lGR_RotateRight0Init) {
+            	gRAngleInit = fmod(gyro.GetAngle(), 360);
+        		logger->Log(logAuton, "Init angle set\n");
+            	state++;
+    }
+    else if (state == lGR_RotateRight0) {
+    	if (TurnAngle(fmod((gRAngleInit + 60), 360))) {
+    	//Intentionally Empty "If Statement"
+    		logger->Log(logAuton, "Turning 60 degrees\n");
+    	} else {
+    		DriveStraight(0);
+	  		logger->Log(logAuton, "Angle change amount reached, stopping movement\n");
+    		state++;
+    	}
+	}
+	else if (state == lGR_BackUp2Init){
+		gRPulseInit = leftDriveEncoder.Get();
+		logger->Log(logAuton, "Init pulse set\n");
+		state++;
+	}
+	else if (state == lGR_BackUp2) {
+		DriveStraight(DRIVE_BACKWARD_SPEED(.5));
+  	    logger->Log(logAuton, "Driving backwards at 0.5 power\n");
+		if(leftDriveEncoder.Get() < -DRIVE_DISTANCE_INCHES(17) + gRPulseInit){
+			DriveStraight(0);
+	  		logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+			state++;
+		}
+	}
   }
+
+  void autoLGRHopperRed() {
+	  if (state <= lGRHR_LeftGearReload){
+		  autoLeftGearReload();
+	  } else {
+	  switch (state) {
+	  case lGRHR_Init:
+		  timer.Reset();
+		  timer.Start();
+		  leftDriveEncoder.Reset();
+		  rightDriveEncoder.Reset();
+		  break;
+
+	  case lGRHR_DriveForward0:
+		  if (timer.Get() > 2) {
+			  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+			  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+			  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(46.625)) {
+				  DriveStraight(0);
+		  		  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+				  state++;
+			  }
+		  }
+		  break;
+
+	  case lGRHR_RotateRight0Init:
+		  gRAngleInit = fmod(gyro.GetAngle(), 360);
+		  logger->Log(logAuton, "Init angle set\n");
+		  state++;
+		  break;
+
+	  case lGRHR_RotateRight0:
+		  if (TurnAngle(fmod((gRAngleInit + 30), 360))) {
+			//Intentionally Empty "If Statement"
+				logger->Log(logAuton, "Turning 30 degrees\n");
+	      } else {
+				DriveStraight(0);
+				logger->Log(logAuton, "Angle change amount reached, stopping movement\n");
+				state++;
+		  }
+		  break;
+	  case lGRHR_DriveForward1:
+		  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+		  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+		  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(42.5)) {
+			  DriveStraight(0);
+			  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+			  state++;
+		  }
+		  break;
+	  }
+	}
+  }
+
+  void autoLGRHopperBlue() {
+	  if (state <= lGRHB_LeftGearReload){
+	  		  autoLeftGearReload();
+	  	  } else {
+	  	  switch (state) {
+	  	  case lGRHB_Init:
+	  		  timer.Reset();
+	  		  timer.Start();
+	  		  leftDriveEncoder.Reset();
+	  		  rightDriveEncoder.Reset();
+	  		  break;
+
+	  	  case lGRHB_DriveForward0:
+	  		  if (timer.Get() > 2) {
+	  			  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+	  			  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+	  			  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(52)) {
+	  				  DriveStraight(0);
+	  		  		  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+	  				  state++;
+	  			  }
+	  		  }
+	  		  break;
+
+	  	  case lGRHB_RotateRight0Init:
+	  		  gRAngleInit = fmod(gyro.GetAngle(), 360);
+	  		  logger->Log(logAuton, "Init angle set\n");
+	  		  state++;
+	  		  break;
+
+	  	  case lGRHB_RotateRight0:
+	  		  if (TurnAngle(fmod((gRAngleInit + 90), 360))) {
+	  			//Intentionally Empty "If Statement"
+	  				logger->Log(logAuton, "Turning 90 degrees\n");
+	  	      } else {
+	  				DriveStraight(0);
+	  				logger->Log(logAuton, "Angle change amount reached, stopping movement\n");
+	  				state++;
+	  		  }
+	  		  break;
+
+	  	  case lGRHB_DriveForward1:
+	  		  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+	  		  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+	  		  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(91.75)) {
+	  			  DriveStraight(0);
+	  			  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+	  			  state++;
+	  		  }
+	  		  break;
+
+	  	case lGRHB_RotateLeft0Init:
+			  gRAngleInit = fmod(gyro.GetAngle(), 360);
+			  logger->Log(logAuton, "Init angle set\n");
+			  state++;
+			  break;
+
+	    case lGRHB_RotateLeft0:
+			  if (TurnAngle(fmod((gRAngleInit - 60), 360))) {
+				//Intentionally Empty "If Statement"
+					logger->Log(logAuton, "Turning -60 degrees\n");
+			  } else {
+					DriveStraight(0);
+					logger->Log(logAuton, "Angle change amount reached, stopping movement\n");
+					state++;
+			  }
+			  break;
+
+	  	case lGRHB_DriveForward2:
+			  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+			  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+			  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(13.5)) {
+				  DriveStraight(0);
+				  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+				  state++;
+			  }
+			  break;
+	  	  }
+	  }
+  }
+
+  void autoRightGearReload() {
+	  logger->Log(logAuton, "Left drive: %d, right drive: %d, gyro: %lf\n", leftDriveEncoder.Get(), rightDriveEncoder.Get(), gyro.GetAngle());
+	  logger->Log(logAuton, "Auton state autoLeftGearReload is in state %d\n", state);
+	if (state == rGR_Init) {
+		timer.Reset();
+		timer.Start();
+		logger->Log(logAuton, "Timer reset\n");
+		state++;
+	}
+	else if (state == rGR_LowGear) {
+      shifter.Set(SHIFTER_LOW);
+	  logger->Log(logAuton, "Shifted to low gear\n");
+      if (timer.Get() > 1) {
+    	  timer.Reset();
+    	  timer.Start();
+  		logger->Log(logAuton, "1 second passed, timer reset\n");
+        state++;
+      }
+    }
+    else if (state == rGR_BackUp0Init) {
+    	gRPulseInit = leftDriveEncoder.Get();
+		logger->Log(logAuton, "Init pulse set at %d\n", gRPulseInit);
+    	state++;
+    }
+    else if (state == rGR_BackUp0) {
+      DriveStraight(DRIVE_BACKWARD_SPEED(.5));
+	  logger->Log(logAuton, "Driving backwards at 0.5 power\n");
+      if(leftDriveEncoder.Get() < -DRIVE_DISTANCE_INCHES(12) + gRPulseInit) {
+          DriveStraight(0);
+          driveAngle = -1;
+  		  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+    	  state++;
+    	  timer.Reset();
+    	  timer.Start();
+  		  logger->Log(logAuton, "Timer reset\n");
+      }
+    }
+    else if (state == rGR_LowerIntake) {
+        intake.Set(INTAKE_DOWN);
+		logger->Log(logAuton, "Intake put down\n");
+        if (timer.Get() > 1) {
+          timer.Reset();
+          logger->Log(logAuton, "1 second passed, timer reset\n");
+          state++;
+        }
+      }
+    else if (state == rGR_BackUp1Init) {
+      	gRPulseInit = leftDriveEncoder.Get();
+		logger->Log(logAuton, "Init pulse set\n");
+      	state++;
+    }
+    else if (state == rGR_BackUp1) {
+    	  DriveStraight(DRIVE_BACKWARD_SPEED(.5));
+    	  logger->Log(logAuton, "Driving backwards at 0.5 power\n");
+		  if(leftDriveEncoder.Get() < -DRIVE_DISTANCE_INCHES(50) + gRPulseInit) {
+			  DriveStraight(0);
+	  		  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+			  state++;
+		  }
+    }
+    else if (state == rGR_RotateRight0Init) {
+            	gRAngleInit = fmod(gyro.GetAngle(), 360);
+        		logger->Log(logAuton, "Init angle set\n");
+            	state++;
+    }
+    else if (state == rGR_RotateRight0) {
+    	if (TurnAngle(fmod((gRAngleInit - 60), 360))) {
+    	//Intentionally Empty "If Statement"
+    		logger->Log(logAuton, "Turning -60 degrees\n");
+    	} else {
+    		DriveStraight(0);
+	  		logger->Log(logAuton, "Angle change amount reached, stopping movement\n");
+    		state++;
+    	}
+	}
+	else if (state == rGR_BackUp2Init){
+		gRPulseInit = leftDriveEncoder.Get();
+		logger->Log(logAuton, "Init pulse set\n");
+		state++;
+	}
+	else if (state == rGR_BackUp2) {
+		DriveStraight(DRIVE_BACKWARD_SPEED(.5));
+  	    logger->Log(logAuton, "Driving backwards at 0.5 power\n");
+		if(leftDriveEncoder.Get() < -DRIVE_DISTANCE_INCHES(17) + gRPulseInit){
+			DriveStraight(0);
+	  		logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+			state++;
+		}
+	}
+  }
+
+  void autoRGRHopperRed() {
+  	  if (state <= rGRHR_RightGearReload){
+  		  autoRightGearReload();
+  	  } else {
+  	  switch (state) {
+  	  case rGRHR_Init:
+  		  timer.Reset();
+  		  timer.Start();
+  		  leftDriveEncoder.Reset();
+  		  rightDriveEncoder.Reset();
+  		  break;
+
+  	  case rGRHR_DriveForward0:
+  		  if (timer.Get() > 2) {
+  			  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+  			  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+  			  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(32)) {
+  				  DriveStraight(0);
+  		  		  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+  				  state++;
+  			  }
+  		  }
+  		  break;
+
+  	  case rGRHR_RotateLeft0Init:
+  		  gRAngleInit = fmod(gyro.GetAngle(), 360);
+  		  logger->Log(logAuton, "Init angle set\n");
+  		  state++;
+  		  break;
+
+  	  case rGRHR_RotateLeft0:
+  		  if (TurnAngle(fmod((gRAngleInit - 90), 360))) {
+  			//Intentionally Empty "If Statement"
+  				logger->Log(logAuton, "Turning -90 degrees\n");
+  	      } else {
+  				DriveStraight(0);
+  				logger->Log(logAuton, "Angle change amount reached, stopping movement\n");
+  				state++;
+  		  }
+  		  break;
+
+  	  case rGRHR_DriveForward1:
+  		  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+  		  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+  		  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(91.75)) {
+  			  DriveStraight(0);
+  			  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+  			  state++;
+  		  }
+  		  break;
+
+  	  case rGRHB_RotateRight0Init:
+  		  gRAngleInit = fmod(gyro.GetAngle(), 360);
+  		  logger->Log(logAuton, "Init angle set\n");
+  		  state++;
+  		  break;
+
+  	  case rGRHB_RotateRight0Init:
+  		  if (TurnAngle(fmod((gRAngleInit + 60), 360))) {
+				//Intentionally Empty "If Statement"
+					logger->Log(logAuton, "Turning 60 degrees\n");
+		  } else {
+				DriveStraight(0);
+				logger->Log(logAuton, "Angle change amount reached, stopping movement\n");
+				state++;
+		  }
+		  break;
+
+		case rGRHR_DriveForward2:
+			DriveStraight(DRIVE_FORWARD_SPEED(.5));
+			logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+			if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(13.5)) {
+			  DriveStraight(0);
+			  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+			  state++;
+			}
+		break;
+	}
+  }
+}
+
+  void autoRGRHopperBlue() {
+ 	  if (state <= rGRHB_RightGearReload){
+ 	  		  autoLeftGearReload();
+ 	  	  } else {
+ 	  	  switch (state) {
+ 	  	  case lGRHB_Init:
+ 	  		  timer.Reset();
+ 	  		  timer.Start();
+ 	  		  leftDriveEncoder.Reset();
+ 	  		  rightDriveEncoder.Reset();
+ 	  		  break;
+
+ 	  	  case rGRHB_DriveForward0:
+ 	  		  if (timer.Get() > 2) {
+ 	  			  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+ 	  			  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+ 	  			  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(46.625)) {
+ 	  				  DriveStraight(0);
+ 	  		  		  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+ 	  				  state++;
+ 	  			  }
+ 	  		  }
+ 	  		  break;
+
+ 	  	  case rGRHB_RotateLeft0Init:
+ 	  		  gRAngleInit = fmod(gyro.GetAngle(), 360);
+ 	  		  logger->Log(logAuton, "Init angle set\n");
+ 	  		  state++;
+ 	  		  break;
+
+ 	  	  case rGRHB_RotateLeft0:
+ 	  		  if (TurnAngle(fmod((gRAngleInit - 30), 360))) {
+ 	  			//Intentionally Empty "If Statement"
+ 	  				logger->Log(logAuton, "Turning -30 degrees\n");
+ 	  	      } else {
+ 	  				DriveStraight(0);
+ 	  				logger->Log(logAuton, "Angle change amount reached, stopping movement\n");
+ 	  				state++;
+ 	  		  }
+ 	  		  break;
+
+ 	  	  case rGRHB_DriveForward1:
+ 	  		  DriveStraight(DRIVE_FORWARD_SPEED(.5));
+ 	  		  logger->Log(logAuton, "Driving forward at 0.5 power\n");
+
+ 	  		  if (leftDriveEncoder.Get() > DRIVE_DISTANCE_INCHES(42.5)) {
+ 	  			  DriveStraight(0);
+ 	  			  logger->Log(logAuton, "Pulse amount reached, stopping movement\n");
+ 	  			  state++;
+ 	  		  }
+ 	  		  break;
+ 	  	  }
+ 	  }
+   }
 
   void autoHighGoalReload() {
     if (state == HGR_DriveForward0) {
@@ -426,7 +889,6 @@ private:
   }
 
   void AutonomousInit() {
-    mode = 0;
     state = 0;
     initialAngle = -1;
 
@@ -436,6 +898,7 @@ private:
   }
 
   void AutonomousPeriodic() {
+	  logger->LogRunTime();
 	  logger->Log(logAuton, "Auton is in state %d\n", state);
     switch (mode) {
     case rightGearHighGoal:
@@ -450,6 +913,21 @@ private:
     case leftGearReload:
       autoLeftGearReload();
       break;
+    case lGRHopperRed:
+	  autoLGRHopperRed();
+	  break;
+    case lGRHopperBlue:
+      autoLGRHopperBlue();
+      break;
+    case rightGearReload:
+      autoRightGearReload();
+      break;
+    case rGRHopperRed:
+      autoRGRHopperRed();
+      break;
+    case rGRHopperBlue:
+      autoRGRHopperBlue();
+      break;
     case highGoalReload:
       autoHighGoalReload();
       break;
@@ -460,11 +938,10 @@ private:
   }
 
   void AutomaticShooting() {
-	  logger->Log(logShooter, "Automatic shooting\n");
-    Shoot();
-
+	Shoot();
+	logger->Log(logShooter, "Automatic shooting\n");
     conveyor.SetSpeed(CONVEYOR_SPEED);
-    if (fabs(leftShooterEncoder.GetPeriod() - shootingSpeed) < LEFT_TOLERANCE) { //change to fit new encoders
+    if (fabs(leftShooterEncoder.GetRPM() - (MAX_RPM*shootingSpeed)) < LEFT_TOLERANCE) { //change to fit new encoders
       leftTower.SetSpeed(TOWER_SPEED);
       logger->Log(logShooter, "Moving left tower\n");
     } else {
@@ -472,7 +949,7 @@ private:
       leftTower.SetSpeed(0);
     }
 
-    if (fabs(rightShooterEncoder.GetPeriod() - shootingSpeed) < RIGHT_TOLERANCE) { //change to fit new encoders
+    if (fabs(rightShooterEncoder.GetRPM() - (MAX_RPM*shootingSpeed)) < RIGHT_TOLERANCE) { //change to fit new encoders
       rightTower.SetSpeed(-TOWER_SPEED);
       logger->Log(logShooter, "Moving right tower\n");
     } else {
@@ -482,13 +959,19 @@ private:
   }
 
   void TeleopInit() {
+//	  CameraServer::GetInstance()->AddCamera(gearCam);
+
     leftPID.SetSetpoint(shootingSpeed * MAX_RPM);
     rightPID.SetSetpoint(shootingSpeed * MAX_RPM);
 //    leftPID.SetOutputRange(0, .6);
 //    rightPID.SetOutputRange(0, 0.6);
     logger->OpenNewLog("_teleop");
     useXboxControllerForDriving = driveChooser->GetSelected();
+#ifndef USE_CLIMBER_SWITCH
     useClimberBackwards = climbChooser->GetSelected();
+#endif
+//    usePIDForManualShooting = shooterPIDChooser->GetSelected();
+    usePIDForManualShooting = false;
   }
 
   void ManualShooting() {
@@ -516,9 +999,17 @@ private:
 	  SmartDashboard::PutNumber("Right Shooter Encoder", rightShooterEncoder.PIDGet());
 
 	  SmartDashboard::PutNumber("Shooting setpoint", shootingSpeed * MAX_RPM);
+
+	  SmartDashboard::PutNumber("Left Drive Encoder", leftDriveEncoder.Get());
+	  SmartDashboard::PutNumber("Right Drive Encoder", rightDriveEncoder.Get());
+
+	  SmartDashboard::PutNumber("Gyro", gyro.GetAngle());
+
+	  SmartDashboard::PutNumber("Left Shooter Integral 1", leftShooterEncoder.Get());
   }
 
   void TeleopPeriodic() {
+	  logger->LogRunTime();
 	double left, right;
 	bool driveStraight;
 	if (useXboxControllerForDriving) {
@@ -547,7 +1038,7 @@ private:
 
     if (op.GetRawButton(shootingModeSwitch)) {
       logger->Log(logShooter, "Manual shooting mode\n");
-      shootingSpeed = -ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
+      shootingSpeed = ScaledShootingSpeed(op.GetRawAxis(changeShooterSpeed));
     } else {
     	shootingSpeed = SHOOTING_SPEED;
     }
@@ -579,7 +1070,7 @@ private:
 
     if (op.GetRawButton(climberButton)) {
     	logger->Log(logClimber, "Moving climber\n");
-    	if(useClimberBackwards){
+    	if(op.GetRawButton(climberDownSwitch)){
     		climber.SetSpeed(-CLIMBER_SPEED);
     	} else {
     		climber.SetSpeed(CLIMBER_SPEED);
