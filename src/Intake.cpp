@@ -22,6 +22,10 @@ Intake::Intake(OperatorControls *controls) {
   intake = new DoubleSolenoid(intakeForwardPCM, intakeReversePCM);
 }
 
+void Intake::Initialize() {
+  PeriodicExecutable::Initialize();
+}
+
 void Intake::Execute() {
   switch (controls->GetIntakeDirection()) {
   case Direction::kBackward:

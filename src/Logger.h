@@ -20,7 +20,7 @@ public:
 	static void OpenNewLog(const char *suffix = "", const char *extension = ".txt");
 	static void CloseLog();
 	static void Log(LOG_TYPE logType, const char* s, ...);
-	static void LogPID(LOG_TYPE logtype, BetterPIDController *pid);
+	static void LogPID(LOG_TYPE logtype, const char* name, BetterPIDController *pid);
 	static void LogRunTime();
 
 private:

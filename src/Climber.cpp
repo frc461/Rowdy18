@@ -14,26 +14,37 @@ Climber::Climber(OperatorControls *controls) {
   this->controls = controls;
 
   climber = new Spark(climberPWM);
+
+  Initialize();
+}
+
+void Climber::Initialize() {
+  PeriodicExecutable::Initialize();
+  speed = 0;
 }
 
 void Climber::Execute() {
   switch(controls->GetClimberDirection()) {
   case Direction::kBackward:
-    climber->SetSpeed(-CLIMBER_SPEED);
+    speed = -CLIMBER_SPEED;
     break;
 
   case Direction::kForward:
-    climber->SetSpeed(CLIMBER_SPEED);
+    speed = CLIMBER_SPEED;
     break;
 
   case Direction::kOff:
-    climber->SetSpeed(0);
+    speed = 0;
     break;
   }
+
+  climber->SetSpeed(speed);
 }
 
 void Climber::Log() {
 
+  // Climbing up is negative
+  Logger::Log(logShooter, "Shooter speed: %lf\n", -speed);
 }
 Climber::~Climber() {
   // TODO Auto-generated destructor stub

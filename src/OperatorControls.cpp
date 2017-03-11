@@ -23,7 +23,7 @@ bool OperatorControls::IsAutomaticShootingMode() {
 
 // Scales input from [1.0, -1.0] to [0.0, 1.0]
 double OperatorControls::ScaledShootingDial() {
-  return (-joystick->GetRawAxis(OperatorControlInputs::changeShooterSpeed)/2) + 0.5;
+  return (-joystick->GetRawAxis(OperatorControlInputs::changeShooterSpeed)/2.0) + 0.5;
 }
 
 bool OperatorControls::IsAllOnShooting() {

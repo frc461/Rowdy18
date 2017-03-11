@@ -18,8 +18,6 @@
 #define TOWER_SPEED -0.70
 #define CONVEYOR_SPEED 0.90
 
-//TODO: Get pointers to conveyors and towers
-
 Shooter::Shooter(OperatorControls *controls) {
   leftTower = new Spark(leftTowerPWM);
   rightTower = new Spark(rightTowerPWM);
@@ -38,9 +36,18 @@ Shooter::Shooter(OperatorControls *controls) {
   leftPID->SetSetpoint(shootingSpeed * MAX_RPM);
   rightPID->SetSetpoint(shootingSpeed * MAX_RPM);
 
+  conveyor = new Spark(conveyorPWM);
+
   this->controls = controls;
 
   usePIDForManualShooting = false;
+  Initialize();
+}
+
+void Shooter::Initialize() {
+  PeriodicExecutable::Initialize();
+  usePIDForManualShooting = true;
+  conveyorSpeed = 0;
 }
 
 void Shooter::Execute() {
@@ -107,8 +114,8 @@ void Shooter::Shoot() {
     leftShooter->SetSpeed(-leftOut->m_output);
     rightShooter->SetSpeed(rightOut->m_output);
   } else {
-    leftShooter->SetSpeed(-shootingSpeed + .08);
-    rightShooter->SetSpeed(shootingSpeed);
+    leftShooter->SetSpeed(-(shootingSpeed / MAX_RPM) + .08);
+    rightShooter->SetSpeed(shootingSpeed / MAX_RPM);
   }
 }
 
@@ -122,15 +129,33 @@ void Shooter::StopShooting() {
 }
 
 void Shooter::Log() {
+  SmartDashboard::PutNumber("Left shooter encoder", leftShooterEncoder->GetRPM());
+  SmartDashboard::PutNumber("Right shooter encoder", rightShooterEncoder->GetRPM());
 
-}
+  const char *modeString;
+  switch (mode) {
+  case Automatic:
+    modeString = "Automatic";
+    break;
+    
+  case AllOnManual:
+    modeString = "All on manual";
+    break;
 
-void Shooter::StopTowersConveyor() {
-
+  case Manual:
+    modeString = "Manual";
+    break;
+  }
+  
+  Logger::Log(logShooter, "Mode: %s\n", modeString);
+  Logger::Log(logShooter, "Tower speed: %lf\n", towerSpeed);
+  Logger::Log(logShooter, "Conveyor speed: %lf\n", conveyorSpeed);
+  Logger::Log(logShooter, "Shooting speed: %lf\n", shootingSpeed);
+  Logger::LogPID(logShooter, "LeftPID", leftPID);
+  Logger::LogPID(logShooter, "RightPID", rightPID);
 }
 
 void Shooter::RunTowersManually() {
-  double towerSpeed;
   switch (controls->GetTowerDirection()) {
   case Direction::kForward:
     towerSpeed = TOWER_SPEED;

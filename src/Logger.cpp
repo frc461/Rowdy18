@@ -49,9 +49,10 @@ void Logger::Log(LOG_TYPE logType, const char* s, ...) {
 	va_end(args);
 }
 
-void Logger::LogPID(LOG_TYPE logType, BetterPIDController* pid) {
-	Log(logType, "P: %lf, I: %'lf, D: %lf, Input: %lf, Setpoint: %lf, Error: %lf, Output: %lf\n",
-			pid->GetP(),
+void Logger::LogPID(LOG_TYPE logType, const char* name, BetterPIDController* pid) {
+	Log(logType, "%s: P: %lf, I: %'lf, D: %lf, Input: %lf, Setpoint: %lf, Error: %lf, Output: %lf\n",
+			name,
+	    pid->GetP(),
 			pid->GetI(),
 			pid->GetD(),
 			pid->GetInput(),

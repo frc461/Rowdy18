@@ -23,7 +23,6 @@ class Robot: public IterativeRobot {
   int state = 0;
   double initialAngle = -1;
   PowerDistributionPanel *pdp = new PowerDistributionPanel();
-  Logger *logger = new Logger();
   double driveAngle = -1;
   int gRPulseInit;
   double gRAngleInit;
@@ -53,16 +52,6 @@ private:
             
             driveAngle = -1;
   }
-
-  /*
-  void backUpMod(double seconds) {
-    driveTrain.TankDrive(-1, -1, false);
-    if (timer.Get() > seconds) {
-      driveTrain.TankDrive(0, 0.0, false);
-      timer.Reset();
-      state++;
-    }
-  } */
 
   /*
   void DriveStraight(double speed) {
@@ -773,8 +762,10 @@ private:
     initialAngle = -1;
 
     timer.Start();
-    logger->OpenNewLog("_auton");
-    logger->Log(logAuton, "Running auton %d\n", mode);
+    Logger::OpenNewLog("_auton");
+    Logger::Log(logAuton, "Running auton %d\n", mode);
+
+    Initialize();
   }
 
   void AutonomousPeriodic() {
@@ -817,19 +808,29 @@ private:
 //    }
   }
 
+  void Initialize() {
+    driveTrain->Initialize();
+    climber->Initialize();
+    shooter->Initialize();
+    intake->Initialize();
+  }
+
   void TeleopInit() {
-    logger->OpenNewLog("_teleop");
+    printf("Teleop init start\n");
+    Logger::OpenNewLog("_teleop");
+    Initialize();
+    printf("Teleop init finish\n");
   }
 
   void Monitor() {
-//  SmartDashboard::PutNumber("Total current", pdp->GetTotalCurrent());
-//  SmartDashboard::PutNumber("Conveyor current", pdp->GetCurrent(pdpConveyor));
-//  SmartDashboard::PutNumber("Intake current", pdp->GetCurrent(pdpIntake));
-//  SmartDashboard::PutNumber("Intake current analog", (currentSensor.GetAverageVoltage() - 0.6) / 0.04);
+    driveTrain->Log();
+    climber->Log();
+    shooter->Log();
+    intake->Log();
   }
 
   void TeleopPeriodic() {
-	  logger->LogRunTime();
+    Logger::LogRunTime();
 
     driveTrain->Execute();
 

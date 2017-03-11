@@ -14,10 +14,17 @@ class BetterPIDController;
 class RateCounter;
 class SettablePIDOut;
 
+enum ShootingMode {
+  Automatic,
+  AllOnManual,
+  Manual
+};
+
 class Shooter: public PeriodicExecutable {
  public:
   Shooter(OperatorControls *controls);
-  
+
+  void Initialize();
   void Execute();
   void Log();
   
@@ -47,13 +54,17 @@ class Shooter: public PeriodicExecutable {
   void AllOnManualShooting();
   void Shoot();
   void StopShooting();
-  void StopTowersConveyor();
 
   void RunConveyorManually();
 
   void RunTowersManually();
 
   void SetShootingSetpint(double setpoint);
+
+  ShootingMode mode;
+  double towerSpeed;
+  double conveyorSpeed;
+ 
 };
 
 #endif /* SRC_SHOOTER_H_ */

@@ -36,19 +36,41 @@ DriveTrain::DriveTrain(DriverControls *controls) {
   
   shifter = new DoubleSolenoid(shifterForwardPCM, shifterReversePCM);
 
+  Initialize();
+}
+
+void DriveTrain::Initialize() {
+  PeriodicExecutable::Initialize();
+
   isTurning = false;
+  isShifterLocked = false;
+  isDrivingStraight = false;
+  gyro->Reset();
+  leftDriveEncoder->Reset();
+  rightDriveEncoder->Reset();
 }
 
 void DriveTrain::Execute() {
+  leftEncoderValue = leftDriveEncoder->Get();
+  rightEncoderValue = rightDriveEncoder->Get();
+
+  driveTrain->TankDrive(leftSpeed, rightSpeed);
+
   if (isTurning) {
     return;
   }
-  driveTrain->TankDrive(controls->GetLeft(), controls->GetRight());
+
+
+  leftSpeed = controls->GetLeft();
+  rightSpeed = controls->GetRight();
   RunShifter();
 }
 
 void DriveTrain::RunShifter() {
-  switch (controls->GetGear()) {
+  if (!isShifterLocked) {
+    currentGear = controls->GetGear();
+  }
+  switch (currentGear) {
   case ShifterGear::kLowGear:
     shifter->Set(SHIFTER_LOW);
     break;
@@ -59,7 +81,20 @@ void DriveTrain::RunShifter() {
 }
 
 void DriveTrain::Log() {
+  Logger::Log(logDriveTrain, "Left speed: %lf, Right speed: %lf\n", leftSpeed, rightSpeed);
+  Logger::Log(logDriveTrain, "Left encoder: %lf, right encoder: %lf", leftEncoderValue, rightEncoderValue);
+  Logger::Log(logDriveTrain, "%s\n", currentGear == ShifterGear::kLowGear ? "Low Gear" : "High Gear");
+  if (isTurning)
+    Logger::Log(logDriveTrain, "Is turning\n");
 
+  if (isShifterLocked) {
+    Logger::Log(logDriveTrain, "Shifter locked\n");
+  }
+
+  if (isDrivingStraight) {
+    Logger::Log(logDriveTrain, "Is driving straight, started at %lf\n", startingLeftEncoder);
+    Logger::Log(logDriveTrain, "Current angle: %lf, target angle %lf\n", currentAngle, targetAngle);
+  }
 }
 
 DriveTrain::~DriveTrain() {
@@ -68,21 +103,23 @@ DriveTrain::~DriveTrain() {
 
 
 bool DriveTrain::TurnToAngle(double degrees) {
-  double currentAngle = fmod(gyro->GetAngle(), 360) - 180;
-  double targetAngle = fmod(gyro->GetAngle(), 360) - 180;
+  currentAngle = fmod(gyro->GetAngle(), 360);
 
-  double diff = currentAngle - targetAngle;
+  double diff = currentAngle - degrees;
 
   if (fabs(diff) < ROTATION_TOLERANCE_DEGREES) {
     isTurning = false;
-    driveTrain->TankDrive(0.0, 0.0);
+    leftSpeed = 0;
+    rightSpeed = 0;
   } else if (diff > 0) {
     // Turn right
-    driveTrain->TankDrive(-ROTATION_SPEED, ROTATION_SPEED);
+    leftSpeed = ROTATION_SPEED;
+    rightSpeed = -ROTATION_SPEED;
     isTurning = true;
   } else {
     // Turn left
-    driveTrain->TankDrive(ROTATION_SPEED, -ROTATION_SPEED);
+    leftSpeed = ROTATION_SPEED;
+    rightSpeed = -ROTATION_SPEED;
     isTurning = true;
   }
   
@@ -95,7 +132,14 @@ bool DriveTrain::DriveStraight(double inches, double speed) {
   if (!isDrivingStraight) {
     startingLeftEncoder = leftDriveEncoder->Get();
     isDrivingStraight = true;
+    targetAngle = fmod(gyro->GetAngle(), 360) - 180;
   }
+
+  double correction, currentAngle;
+  currentAngle = fmod(gyro->GetAngle(), 360);
+
+  double error = currentAngle - targetAngle;
+  correction = (error / 180) * 3.0;
 
   if (inches > 0) {
     if (DRIVE_DISTANCE_INCHES(leftDriveEncoder->Get() - startingLeftEncoder) > inches) {
@@ -110,5 +154,18 @@ bool DriveTrain::DriveStraight(double inches, double speed) {
     speed = DRIVE_BACKWARD_SPEED(speed);
   }
 
+  if (isDrivingStraight) {
+    leftSpeed = speed - correction;
+    rightSpeed = speed + correction;
+  } else {
+    leftSpeed = 0;
+    rightSpeed = 0;
+  }
+
   return !isDrivingStraight;
+}
+
+void DriveTrain::LockShifterInGear(ShifterGear gear) {
+  isShifterLocked = true;
+  currentGear = gear;
 }

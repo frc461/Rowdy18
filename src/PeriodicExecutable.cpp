@@ -9,6 +9,11 @@
 
 PeriodicExecutable::PeriodicExecutable() {
   timer = new Timer();
+}
+
+void PeriodicExecutable::Initialize() {
+  timer->Reset();
+  timer->Stop();
   isWaiting = false;
 }
 

@@ -42,7 +42,7 @@ enum OperatorControlInputs {
 	intakePositionSwitch = 5,
 	conveyorIn = 10,
 	conveyorOut = 9,
-	climberDownSwitch = 4 // TODO: Implement hood
+	climberDownSwitch = 4
 };
 /*
 enum HatControls {

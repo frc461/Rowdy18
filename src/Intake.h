@@ -15,7 +15,8 @@ class Intake: public PeriodicExecutable {
  public:
   Intake(OperatorControls *controls);
   virtual ~Intake();
-  
+
+  void Initialize();
   void Execute();
   void Log();
 

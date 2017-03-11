@@ -15,6 +15,7 @@ class Climber: public PeriodicExecutable {
  public:
   Climber(OperatorControls *controls);
 
+  void Initialize();
   void Execute();
   void Log();
   virtual ~Climber();
@@ -22,6 +23,7 @@ class Climber: public PeriodicExecutable {
  private:
   OperatorControls *controls;
   Spark *climber;
+  double speed;
 };
 
 #endif /* SRC_CLIMBER_H_ */

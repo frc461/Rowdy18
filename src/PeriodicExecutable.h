@@ -11,10 +11,12 @@
 #include <WPILib.h>
 #include "OperatorControls.h"
 #include "Ports.h"
+#include "Logger.h"
 
 class PeriodicExecutable {
  public:
   PeriodicExecutable();
+  void Initialize();
   virtual void Execute() = 0;
   virtual void Log() = 0;
 
