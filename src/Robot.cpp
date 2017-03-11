@@ -67,9 +67,9 @@ private:
 	  }
 
 	  currentAngle = fmod(gyro.GetAngle(), 360);
-	  if (currentAngle == 0.0) {
+	  if (currentAngle != 0.0) {
 		  if (currentAngle > 180) {
-			  currentAngle -= 360;o
+			  currentAngle -= 360;
 		  }
 
 		  double error = currentAngle - driveAngle;

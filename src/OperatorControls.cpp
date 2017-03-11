@@ -71,7 +71,7 @@ Direction OperatorControls::GetIntakeRollerDirection() {
 
 Direction OperatorControls::GetClimberDirection() {
   if (joystick->GetRawButton(climberButton)) {
-    if (joystick->GetRawAxis(climberDownSwitch))
+    if (joystick->GetRawButton(climberDownSwitch))
       return Direction::kBackward;
     else
       return Direction::kForward;

@@ -40,7 +40,6 @@ Shooter::Shooter(OperatorControls *controls) {
 
   this->controls = controls;
 
-  usePIDForManualShooting = false;
   Initialize();
 }
 
@@ -170,11 +169,10 @@ void Shooter::RunTowersManually() {
     break;
   }
   leftTower->SetSpeed(towerSpeed);
-  rightTower->SetSpeed(towerSpeed);
+  rightTower->SetSpeed(-towerSpeed);
 }
 
 void Shooter::RunConveyorManually() {
-    double conveyorSpeed;
     switch (controls->GetConveyorDirection()) {
     case Direction::kForward:
       conveyorSpeed = CONVEYOR_SPEED;
