@@ -34,6 +34,8 @@ class Robot: public IterativeRobot {
   Shooter *shooter = new Shooter(operatorControls);
   Intake *intake = new Intake(operatorControls);
   Climber *climber = new Climber(operatorControls);
+  cs::UsbCamera cam0;
+  cs::UsbCamera cam1;
 
 public:
   Robot() :
@@ -48,7 +50,10 @@ public:
 private:
   void RobotInit() {
 
-            CameraServer::GetInstance()->StartAutomaticCapture(0);
+            cam0 = CameraServer::GetInstance()->StartAutomaticCapture(0);
+//            cam1 = CameraServer::GetInstance()->StartAutomaticCapture(1);
+//            cam0.SetResolution(80, 60);
+//            cam1.SetResolution(80, 60);
             
             driveAngle = -1;
   }
