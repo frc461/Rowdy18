@@ -16,6 +16,7 @@ void AutoCenterGear::Initialize() {
   AutoBase::Initialize();
   state = 0;
   driveTrain->Initialize();
+  driveTrain->LockShifterInGear(ShifterGear::kLowGear);
 }
 
 void AutoCenterGear::Execute() {
@@ -26,6 +27,7 @@ void AutoCenterGear::Execute() {
 
   case finished:
     driveTrain->DriveStraight(0, 0);
+    driveTrain->UnlockShifterGear();
     break;
   }
 

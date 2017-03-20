@@ -179,3 +179,7 @@ void DriveTrain::LockShifterInGear(ShifterGear gear) {
   isShifterLocked = true;
   currentGear = gear;
 }
+
+void DriveTrain::UnlockShifterGear() {
+  isShifterLocked = false;
+}
