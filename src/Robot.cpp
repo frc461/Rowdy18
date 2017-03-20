@@ -12,6 +12,7 @@
 #include "Climber.h"
 
 #include "AutoCenterGear.h"
+#include "AutoRightGear.h"
 
 #define USE_GYRO_DRIVE_CORRECTION
 
@@ -21,7 +22,6 @@ class Robot: public IterativeRobot {
   Joystick op;
   Timer timer;
   AnalogInput currentSensor;
-  int mode = centerGear;
   int state = 0;
   double initialAngle = -1;
   PowerDistributionPanel *pdp = new PowerDistributionPanel();
@@ -36,9 +36,10 @@ class Robot: public IterativeRobot {
   Shooter *shooter = new Shooter(operatorControls);
   Intake *intake = new Intake(operatorControls);
   Climber *climber = new Climber(operatorControls);
-  cs::UsbCamera cam0;
-  cs::UsbCamera cam1;
-  AutoCenterGear *currentAuto = new AutoCenterGear(driveTrain);
+  AutoBase *currentAuto;
+  AutoCenterGear *centerGearAuto = new AutoCenterGear(driveTrain);
+  AutoRightGear *rightGearAuto = new AutoRightGear(driveTrain);
+  SendableChooser<AutoBase*> *autoChooser = new SendableChooser<AutoBase*>();
 
 public:
   Robot() :
@@ -52,13 +53,11 @@ public:
 
 private:
   void RobotInit() {
-
-            cam0 = CameraServer::GetInstance()->StartAutomaticCapture(0);
-//            cam1 = CameraServer::GetInstance()->StartAutomaticCapture(1);
-//            cam0.SetResolution(80, 60);
-//            cam1.SetResolution(80, 60);
             
             driveAngle = -1;
+            autoChooser->AddDefault("Center gear", centerGearAuto);
+            autoChooser->AddObject("Right gear", rightGearAuto);
+            SmartDashboard::PutData("Auto Chooser", autoChooser);
   }
 
   /*
@@ -766,12 +765,14 @@ private:
   */
 
   void AutonomousInit() {
+    currentAuto = autoChooser->GetSelected();
     state = 0;
     initialAngle = -1;
 
     timer.Start();
     Logger::OpenNewLog("_auton");
-    Logger::Log(logAuton, "Running auton %d\n", mode);
+
+    currentAuto->Initialize();
 
     Initialize();
   }
@@ -824,7 +825,6 @@ private:
     shooter->Initialize();
     intake->Initialize();
 
-    currentAuto->Initialize();
   }
 
   void TeleopInit() {
