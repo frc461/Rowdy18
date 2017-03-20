@@ -21,7 +21,7 @@ void AutoCenterGear::Initialize() {
 void AutoCenterGear::Execute() {
   switch(state) {
   case forward:
-    if (driveTrain->DriveStraight(-74)) ++state;
+    if (driveTrain->DriveStraight(-75)) ++state;
     break;
 
   case finished:
