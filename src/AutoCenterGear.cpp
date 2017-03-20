@@ -9,6 +9,7 @@
 
 AutoCenterGear::AutoCenterGear(DriveTrain* driveTrain) {
   this->driveTrain = driveTrain;
+  Initialize();
 }
 
 void AutoCenterGear::Initialize() {
