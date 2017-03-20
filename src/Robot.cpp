@@ -12,6 +12,7 @@
 #include "Climber.h"
 
 #include "AutoCenterGear.h"
+#include "AutoLeftGear.h"
 #include "AutoRightGear.h"
 
 #define USE_GYRO_DRIVE_CORRECTION
@@ -37,8 +38,11 @@ class Robot: public IterativeRobot {
   Intake *intake = new Intake(operatorControls);
   Climber *climber = new Climber(operatorControls);
   AutoBase *currentAuto;
+
   AutoCenterGear *centerGearAuto = new AutoCenterGear(driveTrain);
+  AutoLeftGear *leftGearAuto = new AutoLeftGear(driveTrain);
   AutoRightGear *rightGearAuto = new AutoRightGear(driveTrain);
+
   SendableChooser<AutoBase*> *autoChooser = new SendableChooser<AutoBase*>();
 
 public:
@@ -55,8 +59,10 @@ private:
   void RobotInit() {
             
             driveAngle = -1;
+
             autoChooser->AddDefault("Center gear", centerGearAuto);
             autoChooser->AddObject("Right gear", rightGearAuto);
+            autoChooser->AddObject("Left gear", leftGearAuto);
             SmartDashboard::PutData("Auto Chooser", autoChooser);
   }
 
