@@ -18,7 +18,7 @@
 #define COUNTERCLOCKWISE(x) x
 #define CLOCKWISE(x) -x
 #define ROTATION_TOLERANCE_DEGREES 5
-#define ROTATION_SPEED 0.5
+#define ROTATION_SPEED 0.65
 
 DriveTrain::DriveTrain(DriverControls *controls) {
   this->controls = controls;
@@ -55,6 +55,7 @@ void DriveTrain::Execute() {
   rightEncoderValue = rightDriveEncoder->Get();
 
   driveTrain->TankDrive(leftSpeed, rightSpeed);
+  RunShifter();
 
   if (isTurning || isDrivingStraight) {
     return;
@@ -63,7 +64,6 @@ void DriveTrain::Execute() {
 
   leftSpeed = controls->GetLeft();
   rightSpeed = controls->GetRight();
-  RunShifter();
 }
 
 void DriveTrain::RunShifter() {
@@ -103,25 +103,33 @@ DriveTrain::~DriveTrain() {
   // TODO Auto-generated destructor stub
 }
 
+// 0 = don't turn
+// Left is positive
+// Right is negative
+bool DriveTrain::TurnByAngle(double degrees) {
 
-bool DriveTrain::TurnToAngle(double degrees) {
-  currentAngle = fmod(gyro->GetAngle(), 360);
+  if (!isTurning) {
+    gyro->Reset();
+  }
+
+  currentAngle = gyro->GetAngle();
 
   double diff = currentAngle - degrees;
+  printf("Current: %lf, target: %lf Diff: %lf\n", currentAngle, degrees, diff);
 
   if (fabs(diff) < ROTATION_TOLERANCE_DEGREES) {
     isTurning = false;
     leftSpeed = 0;
     rightSpeed = 0;
-  } else if (diff > 0) {
+  } else if (diff < 0) {
     // Turn right
     leftSpeed = ROTATION_SPEED;
     rightSpeed = -ROTATION_SPEED;
     isTurning = true;
   } else {
     // Turn left
-    leftSpeed = ROTATION_SPEED;
-    rightSpeed = -ROTATION_SPEED;
+    leftSpeed = -ROTATION_SPEED;
+    rightSpeed = ROTATION_SPEED;
     isTurning = true;
   }
   

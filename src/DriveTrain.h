@@ -19,11 +19,13 @@ class DriveTrain: public PeriodicExecutable {
   void Execute();
   void Log();
 
-  bool TurnToAngle(double degrees);
+  bool TurnByAngle(double degrees);
   bool DriveStraight(double inches, double speed=0.5);
 
   void LockShifterInGear(ShifterGear gear);
   void UnlockShifterGear();
+
+  ADXRS450_Gyro *gyro;
   
   virtual ~DriveTrain();
 
@@ -35,8 +37,6 @@ class DriveTrain: public PeriodicExecutable {
   
   Encoder *leftDriveEncoder;
   Encoder *rightDriveEncoder;
-
-  ADXRS450_Gyro *gyro;
 
   ShifterGear currentGear;
   void RunShifter();
