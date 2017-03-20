@@ -11,11 +11,12 @@
 #include <WPILib.h>
 #include "PeriodicExecutable.h"
 
-class AutoBase: public PeriodicExecutable {
+class AutoBase : public PeriodicExecutable {
  public:
   AutoBase();
-  void Initialize();
+  virtual void Initialize();
   virtual ~AutoBase();
+  virtual void Execute();
  protected:
   int state;
   

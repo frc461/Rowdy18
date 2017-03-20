@@ -9,11 +9,15 @@
 
 AutoBase::AutoBase() {
   // TODO Auto-generated constructor stub
-
+  Initialize();
 }
 
 void AutoBase::Initialize() {
   state = 0;
+}
+
+void AutoBase::Execute() {
+
 }
 
 AutoBase::~AutoBase() {
