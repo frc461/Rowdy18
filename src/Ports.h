@@ -10,6 +10,11 @@
 
 #include "XboxJoystickMap.h"
 
+enum Joysticks {
+  DriverControlsJoystick = 0,
+  OperatorControlsJoystick = 1
+};
+
 enum PWM {
 	frontLeftPWM = 0,
 	frontRightPWM = 2,

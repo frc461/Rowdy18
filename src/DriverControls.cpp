@@ -15,6 +15,16 @@ DriverControls::DriverControls(int channel) {
   joystick = new Joystick(channel);
 }
 
+DriverControls *DriverControls::driverControls = NULL;
+
+DriverControls *DriverControls::SharedDriverControls() {
+  if (!driverControls) {
+    driverControls = new DriverControls(Joysticks::DriverControlsJoystick);
+  }
+
+  return driverControls;
+}
+
 double DriverControls::GetLeft() {
   double val = joystick->GetRawAxis(XboxAxisLeftStickY);
   return fabs(val) > DRIVE_DEADZONE ? val : 0;

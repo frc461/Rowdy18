@@ -10,6 +10,8 @@
 
 #include <WPILib.h>
 
+#include "DriverControls.h"
+
 enum Direction {
   kForward,
   kBackward,
@@ -18,7 +20,6 @@ enum Direction {
 
 class OperatorControls {
 public:
-  OperatorControls(int port);
   virtual ~OperatorControls();
 
   // Shooting
@@ -36,7 +37,11 @@ public:
 
   Direction GetClimberDirection();
   
+  static OperatorControls *SharedOperatorControls();
+
 private:
+  OperatorControls(int port);
+  static OperatorControls *operatorControls;
   Joystick *joystick;
 };
 

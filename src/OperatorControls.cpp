@@ -13,6 +13,16 @@ OperatorControls::OperatorControls(int port) {
   joystick = new Joystick(port);
 }
 
+OperatorControls *OperatorControls::operatorControls = NULL;
+
+OperatorControls *OperatorControls::SharedOperatorControls() {
+  if (!operatorControls) {
+    operatorControls = new OperatorControls(Joysticks::OperatorControlsJoystick);
+  }
+
+  return operatorControls;
+}
+
 OperatorControls::~OperatorControls() {
   // TODO Auto-generated destructor stub
 }

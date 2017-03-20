@@ -17,14 +17,17 @@ enum ShifterGear {
 
 class DriverControls {
  public:
-  DriverControls(int channel);
   virtual ~DriverControls();
   double GetLeft();
   double GetRight();
   ShifterGear GetGear();
 
+  static DriverControls *SharedDriverControls();
+
  private:
+  DriverControls(int channel);
   Joystick *joystick;
+  static DriverControls *driverControls;
 };
 
 #endif /* SRC_DRIVERCONTROLS_H_ */

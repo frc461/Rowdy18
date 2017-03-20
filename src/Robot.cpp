@@ -29,10 +29,10 @@ class Robot: public IterativeRobot {
   int gRPulseInit;
   double gRAngleInit;
 
-  DriverControls *driverControls = new DriverControls(0);
+  DriverControls *driverControls = DriverControls::SharedDriverControls();
   DriveTrain *driveTrain = new DriveTrain(driverControls);
 
-  OperatorControls *operatorControls = new OperatorControls(1);
+  OperatorControls *operatorControls = OperatorControls::SharedOperatorControls();
   Shooter *shooter = new Shooter(operatorControls);
   Intake *intake = new Intake(operatorControls);
   Climber *climber = new Climber(operatorControls);
