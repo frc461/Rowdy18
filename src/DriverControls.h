@@ -21,6 +21,7 @@ class DriverControls {
   double GetLeft();
   double GetRight();
   ShifterGear GetGear();
+  bool GetClimber();
 
   static DriverControls *SharedDriverControls();
 

@@ -80,7 +80,8 @@ Direction OperatorControls::GetIntakeRollerDirection() {
 }
 
 Direction OperatorControls::GetClimberDirection() {
-  if (joystick->GetRawButton(climberButton)) {
+  if (joystick->GetRawButton(climberButton) || DriverControls::SharedDriverControls()->GetClimber()) {
+    printf("Climbing\n");
     if (joystick->GetRawButton(climberDownSwitch))
       return Direction::kBackward;
     else

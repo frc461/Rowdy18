@@ -61,7 +61,8 @@ enum HatControls {
 */
 
 enum DriverControlsXbox {
-	shiftGearsAxisXbox = 3
+	shiftGearsAxisXbox = 3,
+	climberButtonXbox = XboxButtonLeftBumper
 };
 
 enum DriverControlsRightJoystick {

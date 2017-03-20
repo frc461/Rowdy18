@@ -42,6 +42,12 @@ ShifterGear DriverControls::GetGear() {
     return ShifterGear::kLowGear;
 }
 
+bool DriverControls::GetClimber() {
+  bool shouldClimb = joystick->GetRawButton(climberButtonXbox);
+  printf("Should climb: %s\n", shouldClimb ? "true" : "false");
+  return shouldClimb;
+}
+
 DriverControls::~DriverControls() {
   // TODO Auto-generated destructor stub
 }
