@@ -56,13 +56,16 @@ void Shooter::Execute() {
 
   if (controls->IsShooting() && controls->IsAutomaticShootingMode()) {
     // Towers and conveyor under automatic control
+    mode = Automatic;
     AutomaticShooting();
   } else if (controls->IsAllOnShooting()) {
     // Towers and conveyor running
+    mode = AllOnManual;
     AllOnManualShooting();
   } else {
     // Towers and conveyor under manual control
 
+    mode = Manual;
     if (controls->IsShooting()) {
       Shoot();
     } else {
@@ -125,6 +128,8 @@ void Shooter::StopShooting() {
   rightPID->Reset();
   leftShooter->SetSpeed(0);
   rightShooter->SetSpeed(0);
+  leftShooterEncoder->Reset();
+  rightShooterEncoder->Reset();
 }
 
 void Shooter::Log() {
