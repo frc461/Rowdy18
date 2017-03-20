@@ -7,6 +7,8 @@
 
 #include "BetterPIDController.h"
 
+#include "RateCounter.h"
+
 PIDSource *m_source;
 BetterPIDController::BetterPIDController(double p, double i, double d, PIDSource* source, PIDOutput* output, double period) :
 		PIDController (p, i, d, source, output, period) {
@@ -20,7 +22,7 @@ BetterPIDController::BetterPIDController(double p, double i, double d, double f,
 }
 
 double BetterPIDController::GetInput() {
-	return m_source->PIDGet();
+	return ((RateCounter*) m_source)->PIDGet();
 }
 
 BetterPIDController::~BetterPIDController() {
