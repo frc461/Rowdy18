@@ -8,6 +8,8 @@
 #ifndef SRC_PORTS_H_
 #define SRC_PORTS_H_
 
+#include "XboxJoystickMap.h"
+
 enum PWM {
 	frontLeftPWM = 0,
 	frontRightPWM = 2,
