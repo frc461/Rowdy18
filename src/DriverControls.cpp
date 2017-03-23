@@ -52,3 +52,10 @@ DriverControls::~DriverControls() {
   // TODO Auto-generated destructor stub
 }
 
+CameraSelect DriverControls::GetCameraSelect(){
+  if(joystick->GetRawButton(cameraSelectionXbox)){
+      return CameraSelect::kCamera0;
+  } else{
+    return CameraSelect::kCamera1;
+  }
+}
