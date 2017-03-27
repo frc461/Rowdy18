@@ -15,6 +15,8 @@
 #include "AutoLeftGear.h"
 #include "AutoRightGear.h"
 
+#include <opencv2/core/core.hpp>
+
 #define USE_GYRO_DRIVE_CORRECTION
 
 //Gyro, left is positive, right is negative
@@ -56,14 +58,44 @@ public:
   }
 
 private:
+
+  static void VisionThread() {
+   cs::UsbCamera *camera = new cs::UsbCamera("test", 0);
+   cs::UsbCamera *camera1 = new cs::UsbCamera("test1", 1);
+   camera->SetResolution(320, 240);
+   camera1->SetResolution(320, 240);
+   camera->SetFPS(20);
+   camera1->SetFPS(20);
+
+   cs::CvSource outputStreamStd = CameraServer::GetInstance()->PutVideo("Cam", 320, 240);
+   cs::CvSink *cvSink = new cs::CvSink("cvsink");
+   cs::CvSink *cvSink1 = new cs::CvSink("cvsink1");
+   cvSink->SetSource(*camera);
+   cvSink1->SetSource(*camera1);
+   cv::Mat source;
+   while (true) {
+     if(DriverControls::SharedDriverControls()->GetCameraSelect()){
+       cvSink->GrabFrame(source);
+     }else{
+       cvSink1->GrabFrame(source);
+     }
+     if (!source.empty()){
+       outputStreamStd.PutFrame(source);
+     }
+   }
+  }
+
   void RobotInit() {
             
-            driveAngle = -1;
+//            driveAngle = -1;
+//
+//            autoChooser->AddDefault("Center gear", centerGearAuto);
+//            autoChooser->AddObject("Right gear", rightGearAuto);
+//            autoChooser->AddObject("Left gear", leftGearAuto);
+//            SmartDashboard::PutData("Auto Chooser", autoChooser);
 
-            autoChooser->AddDefault("Center gear", centerGearAuto);
-            autoChooser->AddObject("Right gear", rightGearAuto);
-            autoChooser->AddObject("Left gear", leftGearAuto);
-            SmartDashboard::PutData("Auto Chooser", autoChooser);
+            std::thread visionThread(VisionThread);
+            visionThread.detach();
   }
 
   /*

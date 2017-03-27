@@ -15,6 +15,11 @@ enum ShifterGear {
   kHighGear
 };
 
+enum CameraSelect {
+  kCamera0,
+  kCamera1
+};
+
 class DriverControls {
  public:
   virtual ~DriverControls();
@@ -22,6 +27,7 @@ class DriverControls {
   double GetRight();
   ShifterGear GetGear();
   bool GetClimber();
+  CameraSelect GetCameraSelect();
 
   static DriverControls *SharedDriverControls();
 
