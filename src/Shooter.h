@@ -45,6 +45,9 @@ class Shooter: public PeriodicExecutable {
   SettablePIDOut *leftOut;
   SettablePIDOut *rightOut;
 
+  DigitalInput *leftLimitSwitch;
+  DigitalInput *rightLimitSwitch;
+
   double shootingSpeed;
   bool usePIDForManualShooting;
 

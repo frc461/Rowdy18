@@ -38,6 +38,9 @@ Shooter::Shooter(OperatorControls *controls) {
 
   conveyor = new Spark(conveyorPWM);
 
+  leftLimitSwitch = new DigitalInput(leftLimitSwitchDIO);
+  rightLimitSwitch = new DigitalInput(rightLimitSwitchDIO);
+
   this->controls = controls;
 
   Initialize();
@@ -79,18 +82,26 @@ void Shooter::Execute() {
 
 void Shooter::AutomaticShooting() {
   Shoot();
-
   conveyor->SetSpeed(CONVEYOR_SPEED);
-  if (fabs(leftShooterEncoder->GetRPM() - (shootingSpeed)) < LEFT_TOLERANCE) { //change to fit new encoders
-    leftTower->SetSpeed(TOWER_SPEED);
+
+  if (leftLimitSwitch->Get()) {
+    if (fabs(leftShooterEncoder->GetRPM() - shootingSpeed) < LEFT_TOLERANCE) {
+      leftTower->SetSpeed(TOWER_SPEED);
+    } else {
+      leftTower->SetSpeed(0);
+    }
   } else {
-    leftTower->SetSpeed(0);
+    leftTower->SetSpeed(TOWER_SPEED);
   }
 
-  if (fabs(rightShooterEncoder->GetRPM() - (shootingSpeed)) < RIGHT_TOLERANCE) { //change to fit new encoders
-    rightTower->SetSpeed(-TOWER_SPEED);
-  } else {
-       rightTower->SetSpeed(0);
+  if (rightLimitSwitch->Get()) {
+      if (fabs(rightShooterEncoder->GetRPM() - shootingSpeed) < RIGHT_TOLERANCE) {
+        rightTower->SetSpeed(TOWER_SPEED);
+      } else {
+        rightTower->SetSpeed(0);
+      }
+    } else {
+      rightTower->SetSpeed(TOWER_SPEED);
     }
 }
 

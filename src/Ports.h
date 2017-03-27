@@ -82,7 +82,9 @@ enum DIO {	//digital input/output
 	leftShooterEncoderA = 4,
 	leftShooterEncoderB = 5,
 	rightShooterEncoderA = 6,
-	rightShooterEncoderB = 7
+	rightShooterEncoderB = 7,
+	leftLimitSwitchDIO = 8,
+	rightLimitSwitchDIO = 9
 };
 
 enum PDP_CHANNELS {
