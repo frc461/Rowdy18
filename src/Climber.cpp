@@ -44,7 +44,7 @@ void Climber::Execute() {
 void Climber::Log() {
 
   // Climbing up is negative
-  Logger::Log(logShooter, "Shooter speed: %lf\n", -speed);
+  Logger::Log(logClimber, "Climber speed: %lf\n", -speed);
 }
 Climber::~Climber() {
   // TODO Auto-generated destructor stub

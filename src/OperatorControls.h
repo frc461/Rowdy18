@@ -36,6 +36,7 @@ public:
   Direction GetIntakeRollerDirection();
 
   Direction GetClimberDirection();
+  Direction GetGearDirection();
   
   static OperatorControls *SharedOperatorControls();
 
@@ -43,6 +44,7 @@ private:
   OperatorControls(int port);
   static OperatorControls *operatorControls;
   Joystick *joystick;
+  SendableChooser<bool> *climberDirectionChooser = new SendableChooser<bool>();
 };
 
 #endif /* SRC_OPERATORCONTROLS_H_ */

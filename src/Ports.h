@@ -21,9 +21,9 @@ enum PWM {
 	backLeftPWM = 1,
 	backRightPWM = 3,
 	intakeRollerPWM = 4,
-	climberPWM = 10,
+	climberPWM = 6,
 	leftShooterPWM = 9, //shooter 1
-	leftTowerPWM = 6,
+	leftTowerPWM = 10,
 	rightShooterPWM = 8, //shooter 2
 	rightTowerPWM = 7,
 	conveyorPWM = 5
@@ -33,7 +33,9 @@ enum PCM {
 	intakeForwardPCM = 2,
 	intakeReversePCM = 3,
 	shifterForwardPCM = 0,
-	shifterReversePCM = 1
+	shifterReversePCM = 1,
+	gearEjectForwardPCM = 4,
+	gearEjectReversePCM = 5
 };
 
 enum OperatorControlInputs {
@@ -49,7 +51,8 @@ enum OperatorControlInputs {
 	intakePositionSwitch = 5,
 	conveyorIn = 10,
 	conveyorOut = 9,
-	climberDownSwitch = 4
+	gearEjectButton = 4
+
 };
 /*
 enum HatControls {

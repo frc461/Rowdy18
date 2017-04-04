@@ -10,6 +10,7 @@
 #include "DriveTrain.h"
 #include "Intake.h"
 #include "Climber.h"
+#include "GearManipulator.h"
 
 #include "AutoCenterGear.h"
 #include "AutoLeftGear.h"
@@ -39,6 +40,7 @@ class Robot: public IterativeRobot {
   Shooter *shooter = new Shooter(operatorControls);
   Intake *intake = new Intake(operatorControls);
   Climber *climber = new Climber(operatorControls);
+  GearManipulator *gearManipulator = new GearManipulator(operatorControls);
   AutoBase *currentAuto;
 
   AutoCenterGear *centerGearAuto = new AutoCenterGear(driveTrain);
@@ -862,7 +864,7 @@ private:
     climber->Initialize();
     shooter->Initialize();
     intake->Initialize();
-
+    gearManipulator->Initialize();
   }
 
   void TeleopInit() {
@@ -885,6 +887,7 @@ private:
     climber->Execute();
     shooter->Execute();
     intake->Execute();
+    gearManipulator->Execute();
 
     Monitor();
   }
