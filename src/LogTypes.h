@@ -22,12 +22,13 @@ enum LOG_TYPE {
 	logTower,
 	logIntake,
 	logClimber,
+	logGearManipulator
 };
 
 // This array is used to print a prefix on each log line based on the LOG_TYPE
 // IT IS VERY IMPORTANT THAT THESE ARE IN THE SAME ORDER AS THE ENUM
 
-static const char* LOG_PREFIXES[] = {"Shooter", "DriveTrain", "Auton", "Operator", "Driver", "Shifter", "Conveyor", "Tower", "Intake", "Climber"};
+static const char* LOG_PREFIXES[] = {"Shooter", "DriveTrain", "Auton", "Operator", "Driver", "Shifter", "Conveyor", "Tower", "Intake", "Climber", "Gear Manipulator"};
 
 
 

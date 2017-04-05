@@ -11,6 +11,9 @@
 OperatorControls::OperatorControls(int port) {
   // TODO Auto-generated constructor stub
   joystick = new Joystick(port);
+  climberDirectionChooser->AddDefault("Climb up", kForward);
+  climberDirectionChooser->AddObject("Climb down", kBackward);
+  SmartDashboard::PutData("climberDirectionChooser", climberDirectionChooser);
 }
 
 OperatorControls *OperatorControls::operatorControls = NULL;
@@ -82,11 +85,15 @@ Direction OperatorControls::GetIntakeRollerDirection() {
 Direction OperatorControls::GetClimberDirection() {
   if (joystick->GetRawButton(climberButton) || DriverControls::SharedDriverControls()->GetClimber()) {
     printf("Climbing\n");
-    if (joystick->GetRawButton(climberDownSwitch))
-      return Direction::kBackward;
-    else
-      return Direction::kForward;
+    return climberDirectionChooser->GetSelected() ? kForward : kBackward;
   }
-
   return Direction::kOff;
+}
+
+Direction OperatorControls::GetGearDirection() {
+  if (joystick->GetRawButton(gearEjectButton)) {
+    return Direction::kBackward;
+  } else {
+    return Direction::kForward;
+  }
 }
