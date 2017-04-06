@@ -68,6 +68,8 @@ class Shooter: public PeriodicExecutable {
   double towerSpeed;
   double conveyorSpeed;
  
+  int leftDelayCounter;
+  int rightDelayCounter;
 };
 
 #endif /* SRC_SHOOTER_H_ */

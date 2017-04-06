@@ -54,7 +54,7 @@ DriverControls::~DriverControls() {
 
 CameraSelect DriverControls::GetCameraSelect(){
   if(joystick->GetRawButton(cameraSelectionXbox)){
-      return CameraSelect::kCamera0;
+    return CameraSelect::kCamera0;
   } else{
     return CameraSelect::kCamera1;
   }

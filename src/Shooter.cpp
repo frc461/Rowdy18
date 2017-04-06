@@ -15,8 +15,10 @@
 #define LEFT_TOLERANCE 50
 #define RIGHT_TOLERANCE 50
 
-#define TOWER_SPEED -0.70
+#define TOWER_SPEED -0.40
 #define CONVEYOR_SPEED 0.90
+
+#define AUTO_DELAY 50
 
 Shooter::Shooter(OperatorControls *controls) {
   leftTower = new Spark(leftTowerPWM);
@@ -40,6 +42,8 @@ Shooter::Shooter(OperatorControls *controls) {
 
   leftLimitSwitch = new DigitalInput(leftLimitSwitchDIO);
   rightLimitSwitch = new DigitalInput(rightLimitSwitchDIO);
+  leftDelayCounter = 0;
+  rightDelayCounter = 0;
 
   this->controls = controls;
 
@@ -84,25 +88,29 @@ void Shooter::AutomaticShooting() {
   Shoot();
   conveyor->SetSpeed(CONVEYOR_SPEED);
 
-  if (leftLimitSwitch->Get()) {
-    if (fabs(leftShooterEncoder->GetRPM() - shootingSpeed) < LEFT_TOLERANCE) {
+  if (!leftLimitSwitch->Get()) {
+    if (fabs(leftShooterEncoder->GetRPM() - shootingSpeed) < LEFT_TOLERANCE  && leftDelayCounter > AUTO_DELAY) {
       leftTower->SetSpeed(TOWER_SPEED);
+      leftDelayCounter = 0;
     } else {
       leftTower->SetSpeed(0);
+      leftDelayCounter++;
     }
   } else {
     leftTower->SetSpeed(TOWER_SPEED);
   }
 
-  if (rightLimitSwitch->Get()) {
-      if (fabs(rightShooterEncoder->GetRPM() - shootingSpeed) < RIGHT_TOLERANCE) {
-        rightTower->SetSpeed(TOWER_SPEED);
-      } else {
-        rightTower->SetSpeed(0);
-      }
+  if (!rightLimitSwitch->Get()) {
+    if (fabs(rightShooterEncoder->GetRPM() - shootingSpeed) < RIGHT_TOLERANCE && rightDelayCounter > AUTO_DELAY) {
+      rightTower->SetSpeed(-TOWER_SPEED);
+      rightDelayCounter = 0;
     } else {
-      rightTower->SetSpeed(TOWER_SPEED);
+      rightTower->SetSpeed(0);
+      rightDelayCounter++;
     }
+  } else {
+    rightTower->SetSpeed(-TOWER_SPEED);
+  }
 }
 
 void Shooter::AllOnManualShooting() {

@@ -64,21 +64,21 @@ private:
   static void VisionThread() {
    cs::UsbCamera *camera = new cs::UsbCamera("test", 0);
    cs::UsbCamera *camera1 = new cs::UsbCamera("test1", 1);
-   camera->SetResolution(320, 240);
-   camera1->SetResolution(320, 240);
+   camera->SetResolution(160, 120);
+   camera1->SetResolution(160, 120);
    camera->SetFPS(20);
    camera1->SetFPS(20);
 
-   cs::CvSource outputStreamStd = CameraServer::GetInstance()->PutVideo("Cam", 320, 240);
+   cs::CvSource outputStreamStd = CameraServer::GetInstance()->PutVideo("Cam", 160, 120);
    cs::CvSink *cvSink = new cs::CvSink("cvsink");
    cs::CvSink *cvSink1 = new cs::CvSink("cvsink1");
    cvSink->SetSource(*camera);
    cvSink1->SetSource(*camera1);
    cv::Mat source;
    while (true) {
-     if(DriverControls::SharedDriverControls()->GetCameraSelect()){
+     if (DriverControls::SharedDriverControls()->GetCameraSelect()){
        cvSink->GrabFrame(source);
-     }else{
+     } else {
        cvSink1->GrabFrame(source);
      }
      if (!source.empty()){
