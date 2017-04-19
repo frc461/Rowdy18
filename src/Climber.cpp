@@ -26,8 +26,8 @@ void Climber::Initialize() {
 void Climber::Execute() {
   switch(controls->GetClimberDirection()) {
   case Direction::kBackward:
-    speed = -CLIMBER_SPEED;
-    break;
+//    speed = -CLIMBER_SPEED;
+//    break;
 
   case Direction::kForward:
     speed = CLIMBER_SPEED;
