@@ -18,7 +18,7 @@
 #define COUNTERCLOCKWISE(x) x
 #define CLOCKWISE(x) -x
 #define ROTATION_TOLERANCE_DEGREES 5
-#define ROTATION_SPEED 0.65
+#define ROTATION_SPEED 0.75
 
 DriveTrain::DriveTrain(DriverControls *controls) {
   this->controls = controls;
