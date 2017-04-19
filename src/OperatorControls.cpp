@@ -97,3 +97,11 @@ Direction OperatorControls::GetGearDirection() {
     return Direction::kForward;
   }
 }
+
+Direction OperatorControls::GetCatapultDirection(){
+  if(joystick->GetRawButton(catapultTrigger) && this->GetClimberDirection() == Direction::kOff){
+    return Direction::kForward;
+  }else{
+    return Direction::kBackward;
+  }
+}

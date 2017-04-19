@@ -38,6 +38,8 @@ public:
   Direction GetClimberDirection();
   Direction GetGearDirection();
   
+  Direction GetCatapultDirection();
+
   static OperatorControls *SharedOperatorControls();
 
 private:

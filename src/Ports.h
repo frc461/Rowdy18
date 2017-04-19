@@ -51,7 +51,8 @@ enum OperatorControlInputs {
 	intakePositionSwitch = 5,
 	conveyorIn = 10,
 	conveyorOut = 9,
-	gearEjectButton = 4
+	gearEjectButton = 4,
+	catapultTrigger = XboxButtonX
 
 };
 /*
