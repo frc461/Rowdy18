@@ -15,7 +15,8 @@
 #define LEFT_TOLERANCE 50
 #define RIGHT_TOLERANCE 50
 
-#define TOWER_SPEED -0.40
+#define MANUAL_TOWER_SPEED .70
+#define AUTOMATIC_TOWER_SPEED 0.40
 #define CONVEYOR_SPEED 0.90
 
 #define AUTO_DELAY 50
@@ -90,33 +91,33 @@ void Shooter::AutomaticShooting() {
 
   if (!leftLimitSwitch->Get()) {
     if (fabs(leftShooterEncoder->GetRPM() - shootingSpeed) < LEFT_TOLERANCE  && leftDelayCounter > AUTO_DELAY) {
-      leftTower->SetSpeed(TOWER_SPEED);
+      leftTower->SetSpeed(AUTOMATIC_TOWER_SPEED);
       leftDelayCounter = 0;
     } else {
       leftTower->SetSpeed(0);
       leftDelayCounter++;
     }
   } else {
-    leftTower->SetSpeed(TOWER_SPEED);
+    leftTower->SetSpeed(AUTOMATIC_TOWER_SPEED);
   }
 
   if (!rightLimitSwitch->Get()) {
     if (fabs(rightShooterEncoder->GetRPM() - shootingSpeed) < RIGHT_TOLERANCE && rightDelayCounter > AUTO_DELAY) {
-      rightTower->SetSpeed(-TOWER_SPEED);
+      rightTower->SetSpeed(-AUTOMATIC_TOWER_SPEED);
       rightDelayCounter = 0;
     } else {
       rightTower->SetSpeed(0);
       rightDelayCounter++;
     }
   } else {
-    rightTower->SetSpeed(-TOWER_SPEED);
+    rightTower->SetSpeed(-AUTOMATIC_TOWER_SPEED);
   }
 }
 
 void Shooter::AllOnManualShooting() {
   
-  leftTower->SetSpeed(TOWER_SPEED);
-  rightTower->SetSpeed(-TOWER_SPEED);
+  leftTower->SetSpeed(MANUAL_TOWER_SPEED);
+  rightTower->SetSpeed(-MANUAL_TOWER_SPEED);
   conveyor->SetSpeed(CONVEYOR_SPEED);
   
   Shoot();
@@ -181,11 +182,11 @@ void Shooter::Log() {
 void Shooter::RunTowersManually() {
   switch (controls->GetTowerDirection()) {
   case Direction::kForward:
-    towerSpeed = TOWER_SPEED;
+    towerSpeed = MANUAL_TOWER_SPEED;
     break;
 
   case Direction::kBackward:
-    towerSpeed = -TOWER_SPEED;
+    towerSpeed = -MANUAL_TOWER_SPEED;
     break;
 
   case Direction::kOff:
