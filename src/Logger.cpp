@@ -11,7 +11,7 @@
 #include <stdarg.h>
 #include <sys/time.h>
 
-#define DATETIME_FORMAT "%m-%d-%Y_%I:%M:%S"
+#define DATETIME_FORMAT "%m-%d-%Y__%I_%M_%S"
 
 FILE *Logger::currentLogFile = NULL;
 timeval Logger::openTime;
