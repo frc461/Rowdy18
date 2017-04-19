@@ -44,6 +44,13 @@ void GearManipulator::Log() {
   Logger::Log(logGearManipulator, "Gear Eject direction: %d\n", direction);
 }
 
+void GearManipulator::Pow() {
+  gearEject->Set(DoubleSolenoid::Value::kForward);
+}
+
+void GearManipulator::Unpow() {
+  gearEject->Set(DoubleSolenoid::Value::kReverse);
+}
 
 GearManipulator::~GearManipulator() {
 }

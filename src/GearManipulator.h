@@ -20,6 +20,9 @@ public:
   void Log();
   virtual ~GearManipulator();
 
+  void Pow();
+  void Unpow();
+
 private:
   OperatorControls *controls;
   DoubleSolenoid *gearEject;

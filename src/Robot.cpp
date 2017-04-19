@@ -43,9 +43,9 @@ class Robot: public IterativeRobot {
   GearManipulator *gearManipulator = new GearManipulator(operatorControls);
   AutoBase *currentAuto;
 
-  AutoCenterGear *centerGearAuto = new AutoCenterGear(driveTrain);
-  AutoLeftGear *leftGearAuto = new AutoLeftGear(driveTrain);
-  AutoRightGear *rightGearAuto = new AutoRightGear(driveTrain);
+  AutoCenterGear *centerGearAuto = new AutoCenterGear(driveTrain, gearManipulator);
+  AutoLeftGear *leftGearAuto = new AutoLeftGear(driveTrain, gearManipulator);
+  AutoRightGear *rightGearAuto = new AutoRightGear(driveTrain, gearManipulator);
 
   SendableChooser<AutoBase*> *autoChooser = new SendableChooser<AutoBase*>();
 
@@ -91,10 +91,10 @@ private:
             
 //            driveAngle = -1;
 //
-//            autoChooser->AddDefault("Center gear", centerGearAuto);
-//            autoChooser->AddObject("Right gear", rightGearAuto);
-//            autoChooser->AddObject("Left gear", leftGearAuto);
-//            SmartDashboard::PutData("Auto Chooser", autoChooser);
+            autoChooser->AddDefault("Center gear", centerGearAuto);
+            autoChooser->AddObject("Right gear", rightGearAuto);
+            autoChooser->AddObject("Left gear", leftGearAuto);
+            SmartDashboard::PutData("Auto Chooser", autoChooser);
 
             std::thread visionThread(VisionThread);
             visionThread.detach();
@@ -820,6 +820,7 @@ private:
   void AutonomousPeriodic() {
     Logger::LogRunTime();
     currentAuto->Execute();
+    currentAuto->Log();
 //	  logger->LogRunTime();
 //	  logger->Log(logAuton, "Auton is in state %d\n", state);
 //    switch (mode) {
@@ -877,6 +878,7 @@ private:
     climber->Log();
     shooter->Log();
     intake->Log();
+    gearManipulator->Log();
   }
 
   void TeleopPeriodic() {

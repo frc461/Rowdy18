@@ -11,15 +11,18 @@
 #include <WPILib.h>
 #include "AutoBase.h"
 #include "DriveTrain.h"
+#include "GearManipulator.h"
 
 enum State {
- forward,
- finished
+ forward = 0,
+ punch = 1,
+ backup = 2,
+ finished = 3
 };
 
 class AutoCenterGear: public AutoBase {
  public:
-  AutoCenterGear(DriveTrain* driveTrain);
+  AutoCenterGear(DriveTrain* driveTrain, GearManipulator *gearManipulator);
   void Initialize() override;
   virtual ~AutoCenterGear();
 
@@ -27,6 +30,7 @@ class AutoCenterGear: public AutoBase {
   void Log();
  private:
   DriveTrain* driveTrain;
+  GearManipulator *gearManipulator;
 };
 
 #endif /* SRC_AUTOCENTERGEAR_H_ */

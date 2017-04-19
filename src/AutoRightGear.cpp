@@ -7,8 +7,9 @@
 
 #include "AutoRightGear.h"
 
-AutoRightGear::AutoRightGear(DriveTrain* driveTrain) {
+AutoRightGear::AutoRightGear(DriveTrain* driveTrain, GearManipulator *gearManipulator) {
   this->driveTrain = driveTrain;
+  this->gearManipulator = gearManipulator;
   Initialize();
 }
 
@@ -18,6 +19,7 @@ void AutoRightGear::Initialize() {
   driveTrain->Initialize();
   startingAngle = 0;
   driveTrain->LockShifterInGear(ShifterGear::kLowGear);
+  driveTrain->SetDriveMode(DriveTrain::DriveMode::tank);
 }
 
 void AutoRightGear::Execute() {
@@ -25,18 +27,23 @@ void AutoRightGear::Execute() {
 
   switch(state) {
   case rgForward0:
-    if (driveTrain->DriveStraight(-95)) ++state;
+    if (driveTrain->DriveStraight(-92, .6)) ++state;
     startingAngle = driveTrain->gyro->GetAngle();
     break;
 
   case rgTurning:
-    if (driveTrain->TurnByAngle(65)) ++state;
+    if (driveTrain->TurnByAngle(58)) ++state;
     break;
 
   case rgForward1:
-    if (driveTrain->DriveStraight(-18)) ++state;
+    if (driveTrain->DriveStraight(-18, .6)) ++state;
     break;
     
+  case rgPunch:
+//    gearManipulator->Pow();
+    ++state;
+    break;
+
   case rgFinished:
     driveTrain->DriveStraight(0, 0);
     driveTrain->UnlockShifterGear();
@@ -47,7 +54,8 @@ void AutoRightGear::Execute() {
 }
 
 void AutoRightGear::Log() {
-
+  Logger::Log(logAuton, "State: %d\n", state);
+  driveTrain->Log();
 }
 
 AutoRightGear::~AutoRightGear() {

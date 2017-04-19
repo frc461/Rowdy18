@@ -11,17 +11,19 @@
 #include <WPILib.h>
 #include "AutoBase.h"
 #include "DriveTrain.h"
+#include "GearManipulator.h"
 
 enum LeftGearState {
  lgForward0,
  lgTurning,
  lgForward1,
+ lgPunch,
  lgFinished
 };
 
 class AutoLeftGear: public AutoBase {
  public:
-  AutoLeftGear(DriveTrain* driveTrain);
+  AutoLeftGear(DriveTrain* driveTrain, GearManipulator *gearManipulator);
   void Initialize() override;
   virtual ~AutoLeftGear();
 
@@ -29,6 +31,7 @@ class AutoLeftGear: public AutoBase {
   void Log();
  private:
   DriveTrain* driveTrain;
+  GearManipulator *gearManipulator;
   double startingAngle;
 };
 
