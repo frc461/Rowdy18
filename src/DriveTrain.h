@@ -14,6 +14,11 @@
 
 class DriveTrain: public PeriodicExecutable {
  public:
+  enum DriveMode {
+    tank,
+    arcade,
+  };
+
   DriveTrain(DriverControls *controls);
   void Initialize();
   void Execute();
@@ -21,6 +26,7 @@ class DriveTrain: public PeriodicExecutable {
 
   bool TurnByAngle(double degrees);
   bool DriveStraight(double inches, double speed=0.5);
+  void SetDriveMode(DriveMode driveMode);
 
   void LockShifterInGear(ShifterGear gear);
   void UnlockShifterGear();
@@ -50,7 +56,13 @@ class DriveTrain: public PeriodicExecutable {
   bool isShifterLocked;
 
   double leftSpeed, rightSpeed;
-  double leftEncoderValue, rightEncoderValue;
+  int leftEncoderValue, rightEncoderValue;
+
+  DriveMode currentDriveMode;
+
+  DriveMode driveModes[2];
+
+  SendableChooser<DriveMode*> *driveModeChooser = new SendableChooser<DriveMode*>();
 };
 
 #endif /* SRC_DRIVETRAIN_H_ */

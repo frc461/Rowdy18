@@ -35,6 +35,16 @@ double DriverControls::GetRight() {
   return fabs(val) > DRIVE_DEADZONE ? val : 0;
 }
 
+double DriverControls::GetThrottle() {
+  double val = joystick->GetRawAxis(XboxAxisLeftStickY);
+  return fabs(val) > DRIVE_DEADZONE ? val : 0;
+}
+
+double DriverControls::GetTurn() {
+  double val = joystick->GetRawAxis(XboxAxisRightStickX);
+  return fabs(val) > DRIVE_DEADZONE ? val : 0;
+}
+
 ShifterGear DriverControls::GetGear() {
   if (joystick->GetRawAxis(shiftGearsAxisXbox) > 0.5)
     return ShifterGear::kHighGear;
@@ -54,8 +64,8 @@ DriverControls::~DriverControls() {
 
 CameraSelect DriverControls::GetCameraSelect(){
   if(joystick->GetRawButton(cameraSelectionXbox)){
-    return CameraSelect::kCamera0;
-  } else{
     return CameraSelect::kCamera1;
+  } else{
+    return CameraSelect::kCamera0;
   }
 }

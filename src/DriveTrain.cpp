@@ -11,7 +11,7 @@
 #define SHIFTER_LOW DoubleSolenoid::kReverse
 #define SHIFTER_HIGH DoubleSolenoid::kForward
 
-#define DRIVE_DISTANCE_INCHES(x) x * 28.647
+#define DRIVE_DISTANCE_INCHES(x) x * 20.46
 #define DRIVE_FORWARD_SPEED(x) -x
 #define DRIVE_BACKWARD_SPEED(x) x
 
@@ -36,6 +36,12 @@ DriveTrain::DriveTrain(DriverControls *controls) {
   
   shifter = new DoubleSolenoid(shifterForwardPCM, shifterReversePCM);
 
+  driveModes[0] = tank;
+  driveModes[1] = arcade;
+  driveModeChooser->AddDefault("Tank", &driveModes[0]);
+  driveModeChooser->AddObject("Arcade", &driveModes[1]);
+  SmartDashboard::PutData("Drive mode", driveModeChooser);
+
   Initialize();
 }
 
@@ -48,13 +54,21 @@ void DriveTrain::Initialize() {
   gyro->Reset();
   leftDriveEncoder->Reset();
   rightDriveEncoder->Reset();
+
+  currentDriveMode = DriveMode::tank;
+
+  currentDriveMode = *(driveModeChooser->GetSelected());
 }
 
 void DriveTrain::Execute() {
   leftEncoderValue = leftDriveEncoder->Get();
   rightEncoderValue = rightDriveEncoder->Get();
 
-  driveTrain->TankDrive(leftSpeed, rightSpeed);
+  if (currentDriveMode == DriveMode::tank || isDrivingStraight || isTurning) {
+    driveTrain->TankDrive(leftSpeed, rightSpeed);
+  } else {
+    driveTrain->ArcadeDrive(leftSpeed, rightSpeed);
+  }
   RunShifter();
 
   if (isTurning || isDrivingStraight) {
@@ -62,8 +76,13 @@ void DriveTrain::Execute() {
   }
 
 
-  leftSpeed = controls->GetLeft();
-  rightSpeed = controls->GetRight();
+  if (currentDriveMode == DriveMode::tank) {
+    leftSpeed = controls->GetLeft();
+    rightSpeed = controls->GetRight();
+  } else {
+    leftSpeed = controls->GetThrottle();
+    rightSpeed = controls->GetTurn();
+  }
 }
 
 void DriveTrain::RunShifter() {
@@ -82,7 +101,10 @@ void DriveTrain::RunShifter() {
 
 void DriveTrain::Log() {
   Logger::Log(logDriveTrain, "Left speed: %lf, Right speed: %lf\n", leftSpeed, rightSpeed);
-  Logger::Log(logDriveTrain, "Left encoder: %lf, right encoder: %lf", leftEncoderValue, rightEncoderValue);
+  Logger::Log(logDriveTrain, "Left encoder: %d, right encoder: %d\n", leftEncoderValue, rightEncoderValue);
+  Logger::Log(logDriveTrain, "Angle: %lf\n", gyro->GetAngle());
+  SmartDashboard::PutNumber("Left encoder\n", leftEncoderValue);
+  SmartDashboard::PutNumber("Right encoder\n", rightEncoderValue);
   Logger::Log(logDriveTrain, "%s\n", currentGear == ShifterGear::kLowGear ? "Low Gear" : "High Gear");
   if (isTurning)
     Logger::Log(logDriveTrain, "Is turning\n");
@@ -140,6 +162,8 @@ bool DriveTrain::TurnByAngle(double degrees) {
 // Speed should always be positive
 bool DriveTrain::DriveStraight(double inches, double speed) {
   if (!isDrivingStraight) {
+    leftDriveEncoder->Reset();
+    rightDriveEncoder->Reset();
     startingLeftEncoder = leftDriveEncoder->Get();
     isDrivingStraight = true;
     targetAngle = fmod(gyro->GetAngle(), 360) - 180;
@@ -182,4 +206,8 @@ void DriveTrain::LockShifterInGear(ShifterGear gear) {
 
 void DriveTrain::UnlockShifterGear() {
   isShifterLocked = false;
+}
+
+void DriveTrain::SetDriveMode(DriveMode newDriveMode) {
+  currentDriveMode = newDriveMode;
 }

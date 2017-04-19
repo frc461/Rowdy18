@@ -29,6 +29,9 @@ class DriverControls {
   bool GetClimber();
   CameraSelect GetCameraSelect();
 
+  double GetThrottle();
+  double GetTurn();
+
   static DriverControls *SharedDriverControls();
 
  private:
