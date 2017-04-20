@@ -866,6 +866,7 @@ private:
     shooter->Initialize();
     intake->Initialize();
     gearManipulator->Initialize();
+    catapult->Initalize();
   }
 
   void TeleopInit() {
@@ -879,6 +880,7 @@ private:
     shooter->Log();
     intake->Log();
     gearManipulator->Log();
+    catapult->Log();
   }
 
   void TeleopPeriodic() {
@@ -890,6 +892,8 @@ private:
     shooter->Execute();
     intake->Execute();
     gearManipulator->Execute();
+	  
+    catapult->Execute();
 
     Monitor();
   }
